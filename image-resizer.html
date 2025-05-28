@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image Resizer & Converter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f8ff;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #007acc;
+    }
+
+    input[type="file"],
+    select,
+    input[type="number"],
+    button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #007acc;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #005fa3;
+    }
+
+    img {
+      width: 100%;
+      margin-top: 10px;
+      border-radius: 5px;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Image Resizer & Converter</h1>
+    <input type="file" id="imageInput" accept="image/*" />
+    <label for="format">Choose Format:</label>
+    <select id="format">
+      <option value="image/png">PNG</option>
+      <option value="image/jpeg">JPEG</option>
+      <option value="image/webp">WEBP</option>
+    </select>
+    <label for="width">Width (px):</label>
+    <input type="number" id="width" placeholder="Width" />
+    <label for="height">Height (px):</label>
+    <input type="number" id="height" placeholder="Height" />
+    <button onclick="resizeAndConvertImage()">Resize & Convert</button>
+    <img id="preview" src="#" alt="Preview" style="display:none;" />
+    <a id="downloadLink" style="display:none;" download="resized-image">Download Image</a>
+  </div>
+
+  <script>
+    const imageInput = document.getElementById("imageInput");
+    const preview = document.getElementById("preview");
+    const downloadLink = document.getElementById("downloadLink");
+
+    function resizeAndConvertImage() {
+      const file = imageInput.files[0];
+      const format = document.getElementById("format").value;
+      const width = parseInt(document.getElementById("width").value);
+      const height = parseInt(document.getElementById("height").value);
+
+      if (!file || !width || !height) {
+        alert("Please fill all fields and select an image.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const img = new Image();
+        img.onload = function () {
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob(
+            function (blob) {
+              const url = URL.createObjectURL(blob);
+              preview.src = url;
+              preview.style.display = "block";
+              downloadLink.href = url;
+              downloadLink.style.display = "inline-block";
+              downloadLink.textContent = "Download Image";
+              downloadLink.download = `resized-image.${format.split("/")[1]}`;
+            },
+            format,
+            0.9
+          );
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  </script>
+</body>
+</html>
