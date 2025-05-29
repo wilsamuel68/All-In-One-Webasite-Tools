@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Image Converter & Compressor</title>
+<style>
+  :root {
+    --light-blue: #a0d8f7;
+    --gradient-pink: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+    --primary-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    background: var(--light-blue);
+    font-family: var(--primary-font);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    color: #222;
+  }
+  header {
+    background: var(--gradient-pink);
+    padding: 1.2rem;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: #333;
+    letter-spacing: 1px;
+  }
+  main {
+    flex: 1;
+    padding: 1rem;
+    max-width: 480px;
+    margin: auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  }
+  label {
+    display: block;
+    margin: 1rem 0 0.4rem;
+    font-weight: 600;
+  }
+  input[type="file"] {
+    width: 100%;
+  }
+  select, input[type="range"] {
+    width: 100%;
+    padding: 0.4rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+  }
+  .preview-container {
+    margin-top: 1rem;
+    text-align: center;
+  }
+  img#preview {
+    max-width: 100%;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    box-shadow: 0 0 8px rgba(0,0,0,0.15);
+  }
+  button {
+    background: var(--gradient-pink);
+    border: none;
+    color: #444;
+    font-weight: 700;
+    padding: 0.8rem 1.2rem;
+    width: 100%;
+    font-size: 1.1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: background 0.3s ease;
+  }
+  button:hover {
+    background: #ff758c;
+    color: white;
+  }
+  .quality-slider {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .quality-slider label {
+    margin: 0;
+    flex-shrink: 0;
+  }
+  .quality-slider input {
+    flex-grow: 1;
+  }
+  footer {
+    text-align: center;
+    font-size: 0.85rem;
+    padding: 1rem;
+    color: #666;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    main {
+      margin: 0.5rem;
+      padding: 1rem;
+    }
+    header {
+      font-size: 1.2rem;
+    }
+    button {
+      font-size: 1rem;
+      padding: 0.7rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>Image Converter & Compressor</header>
+<main>
+  <label for="upload">Upload Image</label>
+  <input type="file" id="upload" accept="image/*" />
+
+  <div class="preview-container" style="display:none;">
+    <img id="preview" alt="Image Preview" />
+  </div>
+
+  <label for="format">Select Format</label>
+  <select id="format" disabled>
+    <option value="image/png">PNG</option>
+    <option value="image/jpeg">JPEG</option>
+    <option value="image/webp">WEBP</option>
+  </select>
+
+  <div class="quality-slider" style="display:none; margin-top: 1rem;">
+    <label for="quality">Quality:</label>
+    <input type="range" id="quality" min="10" max="100" value="90" />
+    <span id="quality-value">90%</span>
+  </div>
+
+  <button id="convert" disabled>Convert & Download</button>
+</main>
+
+<footer>© 2025 Your Multiple-Tool Website</footer>
+
+<script>
+  const uploadInput = document.getElementById('upload');
+  const previewImg = document.getElementById('preview');
+  const previewContainer = previewImg.parentElement;
+  const formatSelect = document.getElementById('format');
+  const qualitySlider = document.getElementById('quality');
+  const qualityValue = document.getElementById('quality-value');
+  const qualityContainer = qualitySlider.parentElement;
+  const convertBtn = document.getElementById('convert');
+
+  let originalImage = null;
+
+  uploadInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return reset();
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload a valid image file.');
+      reset();
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      originalImage = new Image();
+      originalImage.onload = () => {
+        previewImg.src = originalImage.src;
+        previewContainer.style.display = 'block';
+        formatSelect.disabled = false;
+        convertBtn.disabled = false;
+        updateQualityVisibility();
+      };
+      originalImage.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  formatSelect.addEventListener('change', updateQualityVisibility);
+  qualitySlider.addEventListener('input', () => {
+    qualityValue.textContent = qualitySlider.value + '%';
+  });
+
+  function updateQualityVisibility() {
+    // Show quality slider only for JPEG or WEBP
+    const fmt = formatSelect.value;
+    if (fmt === 'image/jpeg' || fmt === 'image/webp') {
+      qualityContainer.style.display = 'flex';
+    } else {
+      qualityContainer.style.display = 'none';
+    }
+  }
+
+  function reset() {
+    previewImg.src = '';
+    previewContainer.style.display = 'none';
+    formatSelect.disabled = true;
+    convertBtn.disabled = true;
+    qualityContainer.style.display = 'none';
+    uploadInput.value = '';
+    originalImage = null;
+  }
+
+  convertBtn.addEventListener('click', () => {
+    if (!originalImage) return;
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = originalImage.naturalWidth;
+    canvas.height = originalImage.naturalHeight;
+    ctx.drawImage(originalImage, 0, 0);
+
+    const selectedFormat = formatSelect.value;
+    let quality = qualitySlider.value / 100;
+
+    if (selectedFormat === 'image/png') {
+      quality = 1; // quality param ignored by PNG
+    }
+
+    canvas.toBlob(
+      blob => {
+        if (!blob) {
+          alert('Conversion failed.');
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+
+        // Generate filename with extension
+        const originalName = uploadInput.files[0].name;
+        const baseName = originalName.replace(/\.[^/.]+$/, '');
+        const extMap = {
+          'image/png': '.png',
+          'image/jpeg': '.jpg',
+          'image/webp': '.webp'
+        };
+        a.download = baseName + extMap[selectedFormat];
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      },
+      selectedFormat,
+      quality
+    );
+  });
+</script>
+
+</body>
+</html>
