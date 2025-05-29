@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Tool: File Converter</title>
+    <style>
+        :root {
+            --light-blue: #ADD8E6; /* A nice light blue */
+            --white-gray: #F0F2F5; /* A subtle white-gray */
+            --dark-blue: #367588;
+            --text-color: #333;
+            --border-color: #D1D9E0;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--white-gray);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--light-blue);
+            color: white;
+            padding: 1.5rem 0;
+            text-align: center;
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+
+        main {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to the top of the main area */
+            padding: 2rem 1rem;
+        }
+
+        .converter-card {
+            background-color: white;
+            padding: 2.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            width: 100%;
+            max-width: 700px; /* Limit width for larger screens */
+            box-sizing: border-box; /* Include padding in width */
+            text-align: center;
+        }
+
+        .converter-card h2 {
+            color: var(--dark-blue);
+            margin-top: 0;
+            font-size: 2rem;
+        }
+
+        .converter-card p {
+            margin-bottom: 1.5rem;
+            color: #555;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 3rem 1.5rem;
+            margin-bottom: 2rem;
+            background-color: #fdfdff;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area.drag-over {
+            background-color: #e6f7ff;
+            border-color: var(--light-blue);
+        }
+
+        .upload-button {
+            background-color: var(--light-blue);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: inline-block;
+            margin-bottom: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .upload-button:hover {
+            background-color: var(--dark-blue);
+        }
+
+        .file-details,
+        .conversion-options,
+        .download-area {
+            background-color: var(--white-gray);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        .file-details h3,
+        .conversion-options h3,
+        .download-area h3 {
+            color: var(--dark-blue);
+            margin-top: 0;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .image-preview {
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px var(--shadow-color);
+            display: none; /* Hidden by default */
+        }
+
+        #fileName, #fileSize, #conversionStatus {
+            font-weight: bold;
+            color: #444;
+        }
+
+        select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            background-color: white;
+            appearance: none; /* Remove default arrow */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23333333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 20px;
+            cursor: pointer;
+        }
+
+        button {
+            background-color: var(--light-blue);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background-color 0.3s ease;
+            width: 100%; /* Make buttons full width on small screens */
+            box-sizing: border-box;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: var(--dark-blue);
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        footer {
+            background-color: var(--dark-blue);
+            color: white;
+            text-align: center;
+            padding: 1.5rem 0;
+            margin-top: auto; /* Push footer to the bottom */
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .converter-card {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+
+            .upload-area {
+                padding: 2rem 1rem;
+            }
+
+            .converter-card h2 {
+                font-size: 1.7rem;
+            }
+
+            button {
+                padding: 0.7rem 1.2rem;
+                font-size: 1rem;
+            }
+
+            select {
+                padding: 0.7rem;
+                font-size: 0.95rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .converter-card {
+                padding: 1rem;
+                margin: 0.5rem;
+            }
+
+            .upload-area {
+                padding: 1.5rem 0.8rem;
+            }
+
+            .converter-card h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>File Converter</h1>
+    </header>
+
+    <main>
+        <div class="converter-card">
+            <h2>Convert Your Files</h2>
+            <p>Upload a single file to convert it to a different format. Image PDF to Word, Word to PDF, and other image formats are supported!</p>
+
+            <div class="upload-area" id="uploadArea">
+                <input type="file" id="fileInput" accept=".jpg, .jpeg, .png, .gif, .pdf, .doc, .docx" hidden>
+                <label for="fileInput" class="upload-button">Upload File</label>
+                <p>or drag and drop your file here</p>
+            </div>
+
+            <div class="file-details" id="fileDetails">
+                <h3>Uploaded File:</h3>
+                <p id="fileName">No file uploaded</p>
+                <p id="fileSize"></p>
+                <div class="image-preview" id="imagePreview">
+                    <img id="previewImage" src="" alt="Image Preview">
+                </div>
+            </div>
+
+            <div class="conversion-options" id="conversionOptions">
+                <h3>Select Target Format:</h3>
+                <select id="targetFormat">
+                    <option value="">-- Select --</option>
+                    <optgroup label="Image Conversions">
+                        <option value="jpg">JPG</option>
+                        <option value="png">PNG</option>
+                        <option value="webp">WEBP</option>
+                    </optgroup>
+                    <optgroup label="PDF Conversions">
+                        <option value="pdf_to_word">PDF to Word</option>
+                        <option value="word_to_pdf">Word to PDF</option>
+                    </optgroup>
+                    </select>
+                <button id="convertButton" disabled>Convert File</button>
+            </div>
+
+            <div class="download-area" id="downloadArea">
+                <h3>Conversion Result:</h3>
+                <p id="conversionStatus"></p>
+                <button id="downloadButton" disabled>Download Converted File</button>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Your Website Name. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const fileInput = document.getElementById('fileInput');
+            const uploadArea = document.getElementById('uploadArea');
+            const fileNameDisplay = document.getElementById('fileName');
+            const fileSizeDisplay = document.getElementById('fileSize');
+            const imagePreview = document.getElementById('imagePreview');
+            const previewImage = document.getElementById('previewImage');
+            const targetFormatSelect = document.getElementById('targetFormat');
+            const convertButton = document.getElementById('convertButton');
+            const downloadButton = document.getElementById('downloadButton');
+            const conversionStatus = document.getElementById('conversionStatus');
+
+            let uploadedFile = null;
+
+            // --- File Upload Logic ---
+
+            // Handle file input change
+            fileInput.addEventListener('change', (event) => {
+                handleFiles(event.target.files);
+            });
+
+            // Handle drag and drop
+            uploadArea.addEventListener('dragover', (event) => {
+                event.preventDefault();
+                uploadArea.classList.add('drag-over');
+            });
+
+            uploadArea.addEventListener('dragleave', (event) => {
+                event.preventDefault();
+                uploadArea.classList.remove('drag-over');
+            });
+
+            uploadArea.addEventListener('drop', (event) => {
+                event.preventDefault();
+                uploadArea.classList.remove('drag-over');
+                handleFiles(event.dataTransfer.files);
+            });
+
+            function handleFiles(files) {
+                if (files.length === 0) {
+                    resetUI();
+                    return;
+                }
+
+                const file = files[0];
+                uploadedFile = file;
+
+                fileNameDisplay.textContent = `Name: ${file.name}`;
+                fileSizeDisplay.textContent = `Size: ${(file.size / 1024 / 1024).toFixed(2)} MB`;
+
+                // Image Preview
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        previewImage.src = e.target.result;
+                        previewImage.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    previewImage.style.display = 'none';
+                    previewImage.src = '';
+                }
+
+                // Enable conversion options
+                targetFormatSelect.value = ""; // Reset select
+                convertButton.disabled = true;
+                downloadButton.disabled = true;
+                conversionStatus.textContent = "";
+                targetFormatSelect.disabled = false;
+            }
+
+            function resetUI() {
+                uploadedFile = null;
+                fileNameDisplay.textContent = 'No file uploaded';
+                fileSizeDisplay.textContent = '';
+                previewImage.style.display = 'none';
+                previewImage.src = '';
+                targetFormatSelect.value = "";
+                targetFormatSelect.disabled = true;
+                convertButton.disabled = true;
+                downloadButton.disabled = true;
+                conversionStatus.textContent = "";
+            }
+
+            // --- Conversion Logic Placeholder ---
+
+            targetFormatSelect.addEventListener('change', () => {
+                if (targetFormatSelect.value && uploadedFile) {
+                    convertButton.disabled = false;
+                } else {
+                    convertButton.disabled = true;
+                }
+            });
+
+            convertButton.addEventListener('click', () => {
+                if (!uploadedFile) {
+                    alert('Please upload a file first.');
+                    return;
+                }
+                if (!targetFormatSelect.value) {
+                    alert('Please select a target format.');
+                    return;
+                }
+
+                conversionStatus.textContent = "Converting...";
+                convertButton.disabled = true;
+                downloadButton.disabled = true;
+
+                const targetFormat = targetFormatSelect.value;
+
+                // --- THIS IS WHERE YOU'D MAKE AN API CALL TO YOUR BACKEND ---
+                // Example (conceptual):
+                /*
+                const formData = new FormData();
+                formData.append('file', uploadedFile);
+                formData.append('targetFormat', targetFormat);
+
+                fetch('/api/convert', { // Replace with your actual API endpoint
+                    method: 'POST',
+                    body: formData,
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Conversion failed!');
+                    }
+                    return response.blob(); // Or response.json() if your API returns a URL
+                })
+                .then(blob => {
+                    // Assuming your backend returns the converted file as a blob
+                    const url = URL.createObjectURL(blob);
+                    downloadButton.href = url;
+                    downloadButton.download = `converted_file.${targetFormat}`; // You might need to adjust filename based on actual conversion
+                    downloadButton.disabled = false;
+                    conversionStatus.textContent = "Conversion successful! Click download.";
+                })
+                .catch(error => {
+                    console.error('Error during conversion:', error);
+                    conversionStatus.textContent = `Conversion failed: ${error.message}`;
+                    downloadButton.disabled = true;
+                })
+                .finally(() => {
+                    convertButton.disabled = false; // Re-enable convert button
+                });
+                */
+
+                // --- FOR DEMO PURPOSES ONLY (NO ACTUAL CONVERSION) ---
+                // Simulate a delay for conversion
+                setTimeout(() => {
+                    conversionStatus.textContent = `(Backend required) Conversion to ${targetFormat} simulated as successful!`;
+                    downloadButton.disabled = false;
+                    // In a real scenario, the download URL would come from the backend.
+                    // For a demo, we can just make a dummy link or allow downloading the original file for testing the button.
+                    // For actual download, the `download` attribute needs the correct file extension.
+                    const dummyDownloadFilename = `converted_file_demo.${targetFormat.split('_')[0]}`; // Simple guess for extension
+                    downloadButton.onclick = () => {
+                        alert(`Downloading simulated file: ${dummyDownloadFilename}\n(Actual file would come from server)`);
+                    };
+                    // To make the download button actually download the original file (for UI test)
+                    if (uploadedFile) {
+                        const url = URL.createObjectURL(uploadedFile);
+                        downloadButton.href = url;
+                        downloadButton.download = dummyDownloadFilename;
+                    }
+
+                    convertButton.disabled = false;
+                }, 2000); // Simulate a 2-second conversion time
+            });
+
+            // Initialize UI state
+            resetUI();
+        });
+    </script>
+</body>
+</html>
