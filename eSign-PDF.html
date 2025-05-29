@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Image eSign & Format Converter</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f4f8;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #2196f3;
+    }
+
+    input[type="file"],
+    select,
+    button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #2196f3;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #1976d2;
+    }
+
+    img {
+      width: 100%;
+      max-height: 300px;
+      margin-top: 10px;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    @media screen and (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+
+      input[type="file"],
+      select,
+      button {
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Image eSign Converter</h2>
+
+  <input type="file" id="imageInput" accept="image/*">
+  <img id="preview" src="#" alt="Image Preview" style="display:none;" />
+
+  <select id="formatSelect">
+    <option value="image/png">Convert to PNG</option>
+    <option value="image/jpeg">Convert to JPG</option>
+    <option value="image/webp">Convert to WEBP</option>
+  </select>
+
+  <button onclick="convertAndDownload()">Download Converted Image</button>
+</div>
+
+<script>
+  const imageInput = document.getElementById('imageInput');
+  const preview = document.getElementById('preview');
+  let currentImage = null;
+
+  imageInput.addEventListener('change', function () {
+    const file = this.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+      currentImage = new Image();
+      currentImage.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  function convertAndDownload() {
+    if (!currentImage) {
+      alert('Please upload an image first.');
+      return;
+    }
+
+    const format = document.getElementById('formatSelect').value;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Wait until image is fully loaded
+    currentImage.onload = () => {
+      drawAndDownload();
+    };
+
+    // If image already loaded
+    if (currentImage.complete) {
+      drawAndDownload();
+    }
+
+    function drawAndDownload() {
+      canvas.width = currentImage.width;
+      canvas.height = currentImage.height;
+      ctx.drawImage(currentImage, 0, 0);
+
+      canvas.toBlob(function (blob) {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `converted-image.${format.split('/')[1]}`;
+        link.click();
+      }, format, 0.8); // 0.8 for slight compression
+    }
+  }
+</script>
+
+</body>
+</html>
