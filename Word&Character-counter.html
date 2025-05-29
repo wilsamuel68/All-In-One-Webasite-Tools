@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Word & Character Counter + Image Converter</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #e0f7fa, #fce4ec);
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem;
+    }
+
+    h1 {
+      color: #007acc;
+      text-align: center;
+    }
+
+    .tool-container {
+      max-width: 600px;
+      width: 100%;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+    }
+
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    .counter {
+      margin-top: 0.5rem;
+      font-weight: bold;
+      color: #007acc;
+    }
+
+    input[type="file"], select, button {
+      margin-top: 1rem;
+      padding: 0.6rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      width: 100%;
+    }
+
+    .preview {
+      margin-top: 1rem;
+      text-align: center;
+    }
+
+    .preview img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+      .tool-container {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Word & Character Counter + Image Converter</h1>
+
+  <div class="tool-container">
+    <h2>Word & Character Counter</h2>
+    <textarea id="textInput" placeholder="Type or paste your text here..."></textarea>
+    <div class="counter" id="counter">Words: 0 | Characters: 0</div>
+  </div>
+
+  <div class="tool-container">
+    <h2>Image Converter Tool</h2>
+    <input type="file" id="imageInput" accept="image/*">
+    <select id="formatSelect">
+      <option value="image/jpeg">Convert to JPEG</option>
+      <option value="image/png">Convert to PNG</option>
+      <option value="image/webp">Convert to WebP</option>
+    </select>
+    <button onclick="convertImage()">Convert & Download</button>
+    <div class="preview" id="imagePreview"></div>
+  </div>
+
+  <script>
+    // Word & Character Counter
+    const textInput = document.getElementById('textInput');
+    const counter = document.getElementById('counter');
+
+    textInput.addEventListener('input', () => {
+      const text = textInput.value.trim();
+      const words = text ? text.split(/\s+/).length : 0;
+      const characters = text.length;
+      counter.textContent = `Words: ${words} | Characters: ${characters}`;
+    });
+
+    // Image Converter
+    const imageInput = document.getElementById('imageInput');
+    const formatSelect = document.getElementById('formatSelect');
+    const imagePreview = document.getElementById('imagePreview');
+    let uploadedImage = null;
+
+    imageInput.addEventListener('change', function () {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          uploadedImage = new Image();
+          uploadedImage.src = e.target.result;
+          uploadedImage.onload = () => {
+            imagePreview.innerHTML = '';
+            imagePreview.appendChild(uploadedImage);
+          };
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function convertImage() {
+      if (!uploadedImage) {
+        alert("Please upload an image first.");
+        return;
+      }
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = uploadedImage.naturalWidth;
+      canvas.height = uploadedImage.naturalHeight;
+      ctx.drawImage(uploadedImage, 0, 0);
+
+      const format = formatSelect.value;
+      canvas.toBlob(blob => {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'converted-image.' + format.split('/')[1];
+        link.click();
+      }, format, 0.8); // Compression quality: 0.8
+    }
+  </script>
+</body>
+</html>
