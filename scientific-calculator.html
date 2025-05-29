@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scientific Calculator & Image Converter</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: #f0f4f8;
+      color: #333;
+    }
+
+    header {
+      text-align: center;
+      background-color: #d0e8ff;
+      padding: 1rem;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      color: #0066cc;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      padding: 1rem;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    /* Calculator Styles */
+    .calculator {
+      background: white;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    .calc-display {
+      width: 100%;
+      height: 50px;
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .calc-buttons {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.5rem;
+    }
+
+    .calc-buttons button {
+      padding: 1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      background-color: #cce6ff;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .calc-buttons button:hover {
+      background-color: #99ccff;
+    }
+
+    /* Image Converter Styles */
+    .image-tool {
+      background: white;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    .preview {
+      max-width: 100%;
+      margin-top: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+
+    select, input[type="file"], button.download-btn {
+      margin-top: 1rem;
+      padding: 0.5rem;
+      font-size: 1rem;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    button.download-btn {
+      background: #007acc;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button.download-btn:hover {
+      background: #005fa3;
+    }
+
+    @media (max-width: 600px) {
+      .calc-buttons {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Scientific Calculator & Image Converter Tool</h1>
+</header>
+
+<div class="container">
+
+  <!-- Calculator Section -->
+  <div class="calculator">
+    <input type="text" id="calc-display" class="calc-display" readonly>
+    <div class="calc-buttons">
+      <button onclick="appendCalc('7')">7</button>
+      <button onclick="appendCalc('8')">8</button>
+      <button onclick="appendCalc('9')">9</button>
+      <button onclick="appendCalc('/')">÷</button>
+      <button onclick="clearCalc()">C</button>
+
+      <button onclick="appendCalc('4')">4</button>
+      <button onclick="appendCalc('5')">5</button>
+      <button onclick="appendCalc('6')">6</button>
+      <button onclick="appendCalc('*')">×</button>
+      <button onclick="appendCalc('Math.sqrt(')">√</button>
+
+      <button onclick="appendCalc('1')">1</button>
+      <button onclick="appendCalc('2')">2</button>
+      <button onclick="appendCalc('3')">3</button>
+      <button onclick="appendCalc('-')">−</button>
+      <button onclick="appendCalc('Math.pow(')">^</button>
+
+      <button onclick="appendCalc('0')">0</button>
+      <button onclick="appendCalc('.')">.</button>
+      <button onclick="calculateCalc()">=</button>
+      <button onclick="appendCalc('+')">+</button>
+      <button onclick="appendCalc('Math.sin(')">sin</button>
+
+      <button onclick="appendCalc('Math.cos(')">cos</button>
+      <button onclick="appendCalc('Math.tan(')">tan</button>
+      <button onclick="appendCalc('Math.log(')">log</button>
+      <button onclick="appendCalc('Math.PI')">π</button>
+      <button onclick="appendCalc('Math.E')">e</button>
+    </div>
+  </div>
+
+  <!-- Image Converter Section -->
+  <div class="image-tool">
+    <h2>Image Converter</h2>
+    <input type="file" id="img-input" accept="image/*">
+    <select id="format">
+      <option value="image/jpeg">Convert to JPEG</option>
+      <option value="image/png">Convert to PNG</option>
+      <option value="image/webp">Convert to WEBP</option>
+    </select>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <img id="preview" class="preview" />
+    <button class="download-btn" onclick="downloadImage()">Download Converted Image</button>
+  </div>
+
+</div>
+
+<script>
+  // Calculator Logic
+  let display = document.getElementById('calc-display');
+
+  function appendCalc(val) {
+    display.value += val;
+  }
+
+  function clearCalc() {
+    display.value = '';
+  }
+
+  function calculateCalc() {
+    try {
+      display.value = eval(display.value);
+    } catch (e) {
+      alert('Invalid Expression');
+    }
+  }
+
+  // Image Converter Logic
+  const imgInput = document.getElementById('img-input');
+  const canvas = document.getElementById('canvas');
+  const preview = document.getElementById('preview');
+  let currentImg = null;
+
+  imgInput.addEventListener('change', function () {
+    const file = this.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const img = new Image();
+      img.onload = function () {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        preview.src = canvas.toDataURL();
+        currentImg = img;
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  function downloadImage() {
+    const format = document.getElementById('format').value;
+    if (!currentImg) {
+      alert('Please upload an image first.');
+      return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(currentImg, 0, 0);
+    const dataURL = canvas.toDataURL(format, 0.9);
+    const a = document.createElement('a');
+    a.href = dataURL;
+    a.download = 'converted-image.' + format.split('/')[1];
+    a.click();
+  }
+</script>
+
+</body>
+</html>
