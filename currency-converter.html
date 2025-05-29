@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Currency & Image Converter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f4f8;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.05);
+    }
+    h2 {
+      text-align: center;
+      color: #008cba;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 10px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #008cba;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+    button:hover {
+      background-color: #007bb5;
+    }
+    .image-preview {
+      text-align: center;
+      margin-top: 15px;
+    }
+    .image-preview img {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 10px;
+    }
+    .section {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>All Currency Converter</h2>
+    <label for="amount">Amount</label>
+    <input type="number" id="amount" placeholder="Enter amount" />
+
+    <label for="fromCurrency">From Currency</label>
+    <select id="fromCurrency">
+      <option value="USD">USD</option>
+      <option value="EUR">EUR</option>
+      <option value="INR">INR</option>
+      <option value="GBP">GBP</option>
+      <option value="JPY">JPY</option>
+    </select>
+
+    <label for="toCurrency">To Currency</label>
+    <select id="toCurrency">
+      <option value="INR">INR</option>
+      <option value="USD">USD</option>
+      <option value="EUR">EUR</option>
+      <option value="GBP">GBP</option>
+      <option value="JPY">JPY</option>
+    </select>
+
+    <button onclick="convertCurrency()">Convert</button>
+
+    <p id="result" style="text-align:center; font-weight:bold; margin-top: 15px;"></p>
+
+    <div class="section">
+      <h2>Image Format Converter</h2>
+      <input type="file" id="imageInput" accept="image/*" onchange="previewImage()" />
+      <div class="image-preview" id="preview"></div>
+
+      <label for="format">Convert To:</label>
+      <select id="format">
+        <option value="image/png">PNG</option>
+        <option value="image/jpeg">JPG</option>
+        <option value="image/webp">WEBP</option>
+      </select>
+      <button onclick="convertImage()">Download Converted Image</button>
+    </div>
+  </div>
+
+  <script>
+    // Currency Conversion (Mock Static Rates)
+    const rates = {
+      USD: { USD: 1, EUR: 0.92, INR: 83, GBP: 0.79, JPY: 155 },
+      EUR: { USD: 1.09, EUR: 1, INR: 90, GBP: 0.86, JPY: 168 },
+      INR: { USD: 0.012, EUR: 0.011, INR: 1, GBP: 0.0095, JPY: 1.87 },
+      GBP: { USD: 1.26, EUR: 1.16, INR: 105, GBP: 1, JPY: 195 },
+      JPY: { USD: 0.0065, EUR: 0.0059, INR: 0.53, GBP: 0.0051, JPY: 1 }
+    };
+
+    function convertCurrency() {
+      const amount = parseFloat(document.getElementById('amount').value);
+      const from = document.getElementById('fromCurrency').value;
+      const to = document.getElementById('toCurrency').value;
+      if (!amount || amount <= 0) {
+        document.getElementById('result').innerText = "Please enter a valid amount.";
+        return;
+      }
+      const result = (amount * rates[from][to]).toFixed(2);
+      document.getElementById('result').innerText = `${amount} ${from} = ${result} ${to}`;
+    }
+
+    // Image Conversion
+    let originalImage = null;
+
+    function previewImage() {
+      const input = document.getElementById('imageInput');
+      const preview = document.getElementById('preview');
+      preview.innerHTML = '';
+
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          originalImage = new Image();
+          originalImage.src = e.target.result;
+          originalImage.onload = () => {
+            preview.innerHTML = '<img src="' + e.target.result + '" />';
+          };
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    function convertImage() {
+      if (!originalImage) {
+        alert("Please select an image first.");
+        return;
+      }
+      const format = document.getElementById('format').value;
+      const canvas = document.createElement('canvas');
+      canvas.width = originalImage.width;
+      canvas.height = originalImage.height;
+
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(originalImage, 0, 0);
+
+      canvas.toBlob(function(blob) {
+        const link = document.createElement('a');
+        link.download = 'converted-image.' + format.split('/')[1];
+        link.href = URL.createObjectURL(blob);
+        link.click();
+      }, format, 0.9);
+    }
+  </script>
+</body>
+</html>
