@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to Text (OCR) Tool</title>
+    <style>
+        /* CSS Styling - Combined from style.css */
+        :root {
+            --primary-color: #ADD8E6; /* Light Blue */
+            --secondary-color: #F0F2F5; /* Light Gray */
+            --dark-text-color: #333;
+            --light-text-color: #666;
+            --border-color: #CCC;
+            --card-background: #FFF;
+            --button-background: #5CACEE; /* A slightly darker light blue */
+            --button-hover: #4A90D9;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--secondary-color);
+            color: var(--dark-text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            margin: 0;
+            text-align: center;
+            color: white;
+        }
+
+        .header nav {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .header nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: bold;
+        }
+
+        .header nav a:hover {
+            text-decoration: underline;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 30px 0;
+        }
+
+        .tool-card {
+            background-color: var(--card-background);
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+            display: grid;
+            gap: 30px; /* Space between sections */
+            grid-template-columns: 1fr; /* Default to single column */
+        }
+
+        @media (min-width: 768px) {
+            .tool-card {
+                grid-template-columns: repeat(auto-fit, minmax(45%, 1fr)); /* Two columns on larger screens */
+                grid-template-areas:
+                    "upload preview"
+                    "controls controls"
+                    "result result";
+            }
+
+            .upload-section { grid-area: upload; }
+            .preview-section { grid-area: preview; }
+            .controls-section { grid-area: controls; }
+            .result-section { grid-area: result; }
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* Upload Section */
+        .upload-section input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed var(--border-color);
+            border-radius: 5px;
+            background-color: var(--secondary-color);
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--dark-text-color);
+            box-sizing: border-box; /* Ensures padding is included in the element's total width and height */
+        }
+
+        .upload-section input[type="file"]::file-selector-button {
+            background-color: var(--button-background);
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 15px;
+            transition: background-color 0.2s ease;
+        }
+
+        .upload-section input[type="file"]::file-selector-button:hover {
+            background-color: var(--button-hover);
+        }
+
+        .upload-hint {
+            font-size: 0.9em;
+            color: var(--light-text-color);
+            margin-top: 10px;
+        }
+
+        /* Preview Section */
+        .image-preview-container {
+            border: 2px solid var(--border-color);
+            border-radius: 5px;
+            min-height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--secondary-color);
+            overflow: hidden; /* To prevent image overflow */
+        }
+
+        .image-preview-container img {
+            max-width: 100%;
+            max-height: 300px; /* Limit height for larger images */
+            height: auto;
+            display: block;
+            object-fit: contain; /* Ensures the entire image is visible within the container */
+        }
+
+        #noImageText {
+            color: var(--light-text-color);
+            font-style: italic;
+        }
+
+        /* Controls Section */
+        .controls-section {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .controls-section button {
+            background-color: var(--button-background);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            width: fit-content; /* Adjust button width to content */
+        }
+
+        .controls-section button:hover:not(:disabled) {
+            background-color: var(--button-hover);
+        }
+
+        .controls-section button:disabled {
+            background-color: #A0A0A0;
+            cursor: not-allowed;
+        }
+
+        .loading-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--light-text-color);
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Result Section */
+        .result-section textarea {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 1rem;
+            min-height: 200px;
+            box-sizing: border-box;
+            resize: vertical;
+            background-color: var(--secondary-color);
+            color: var(--dark-text-color);
+        }
+
+        .result-section textarea::placeholder {
+            color: var(--light-text-color);
+        }
+
+        .result-actions {
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+            gap: 10px;
+            justify-content: flex-end; /* Align buttons to the right */
+        }
+
+        .result-actions button {
+            background-color: var(--button-background);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .result-actions button:hover:not(:disabled) {
+            background-color: var(--button-hover);
+        }
+
+        .result-actions button:disabled {
+            background-color: #A0A0A0;
+            cursor: not-allowed;
+        }
+
+
+        /* Footer */
+        .footer {
+            background-color: var(--dark-text-color);
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 40px;
+        }
+
+        .footer p {
+            margin: 0;
+            font-size: 0.9em;
+        }
+
+        /* Mobile Responsiveness - Adjustments for smaller screens */
+        @media (max-width: 767px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .tool-card {
+                padding: 20px;
+                gap: 20px;
+            }
+
+            .upload-section input[type="file"] {
+                font-size: 0.9rem;
+            }
+
+            .controls-section button {
+                width: 100%;
+                padding: 10px;
+                font-size: 1rem;
+            }
+
+            .result-section textarea {
+                min-height: 150px;
+            }
+
+            .result-actions {
+                flex-direction: column; /* Stack buttons vertically on small screens */
+                align-items: stretch; /* Make buttons fill available width */
+            }
+
+            .result-actions button {
+                width: 100%;
+            }
+        }
+    </style>
+    <script src='https://unpkg.com/tesseract.js@4.1.0/dist/tesseract.min.js'></script>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>Image to Text (OCR)</h1>
+            <nav>
+                </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container tool-card">
+            <div class="upload-section">
+                <h2>Upload Image</h2>
+                <input type="file" id="imageUpload" accept="image/*">
+                <p class="upload-hint">Upload an image to extract text.</p>
+            </div>
+
+            <div class="preview-section">
+                <h2>Image Preview</h2>
+                <div class="image-preview-container">
+                    <img id="imagePreview" src="#" alt="Image Preview" style="display: none;">
+                    <p id="noImageText">No image selected</p>
+                </div>
+            </div>
+
+            <div class="controls-section">
+                <button id="processImage" disabled>Process Image (OCR)</button>
+                <div id="loadingStatus" class="loading-status" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Processing...</p>
+                </div>
+            </div>
+
+            <div class="result-section">
+                <h2>Extracted Text</h2>
+                <textarea id="extractedText" rows="10" placeholder="Extracted text will appear here..." readonly></textarea>
+                <div class="result-actions">
+                    <button id="copyText" disabled>Copy Text</button>
+                    <button id="downloadText" disabled>Download Text (TXT)</button>
+                    </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Your Website Name. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // JavaScript Functionality - Combined from script.js
+        document.addEventListener('DOMContentLoaded', () => {
+            const imageUpload = document.getElementById('imageUpload');
+            const imagePreview = document.getElementById('imagePreview');
+            const noImageText = document.getElementById('noImageText');
+            const processImageButton = document.getElementById('processImage');
+            const loadingStatus = document.getElementById('loadingStatus');
+            const extractedText = document.getElementById('extractedText');
+            const copyTextButton = document.getElementById('copyText');
+            const downloadTextButton = document.getElementById('downloadText');
+
+            let uploadedImageFile = null;
+
+            // Handle image upload and preview
+            imageUpload.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    uploadedImageFile = file;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        imagePreview.src = e.target.result;
+                        imagePreview.style.display = 'block';
+                        noImageText.style.display = 'none';
+                        processImageButton.disabled = false;
+                        extractedText.value = ''; // Clear previous text
+                        copyTextButton.disabled = true;
+                        downloadTextButton.disabled = true;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    uploadedImageFile = null;
+                    imagePreview.src = '#';
+                    imagePreview.style.display = 'none';
+                    noImageText.style.display = 'block';
+                    processImageButton.disabled = true;
+                    extractedText.value = '';
+                    copyTextButton.disabled = true;
+                    downloadTextButton.disabled = true;
+                }
+            });
+
+            // Handle OCR processing
+            processImageButton.addEventListener('click', async () => {
+                if (!uploadedImageFile) {
+                    alert('Please upload an image first.');
+                    return;
+                }
+
+                processImageButton.disabled = true;
+                loadingStatus.style.display = 'flex';
+                extractedText.value = 'Processing image, please wait...';
+                copyTextButton.disabled = true;
+                downloadTextButton.disabled = true;
+
+                try {
+                    // Tesseract.js is included via CDN in the <head>
+                    const { data: { text } } = await Tesseract.recognize(
+                        uploadedImageFile,
+                        'eng', // Language code, 'eng' for English. You can add more languages.
+                        {
+                            logger: m => {
+                                // console.log(m); // Optional: log progress to console
+                                if (m.status === 'recognizing text') {
+                                    extractedText.value = `Processing: ${Math.round(m.progress * 100)}%`;
+                                }
+                            }
+                        }
+                    );
+                    extractedText.value = text;
+                    copyTextButton.disabled = false;
+                    downloadTextButton.disabled = false;
+                } catch (error) {
+                    console.error('OCR Error:', error);
+                    extractedText.value = 'Error processing image. Please try again or with a different image.';
+                    alert('An error occurred during OCR processing.');
+                } finally {
+                    loadingStatus.style.display = 'none';
+                    processImageButton.disabled = false;
+                }
+            });
+
+            // Copy extracted text
+            copyTextButton.addEventListener('click', () => {
+                extractedText.select();
+                extractedText.setSelectionRange(0, 99999); // For mobile devices
+                try {
+                    navigator.clipboard.writeText(extractedText.value);
+                    alert('Text copied to clipboard!');
+                } catch (err) {
+                    console.error('Failed to copy text: ', err);
+                    alert('Failed to copy text. Please copy manually.');
+                }
+            });
+
+            // Download extracted text
+            downloadTextButton.addEventListener('click', () => {
+                const textContent = extractedText.value;
+                if (!textContent) {
+                    alert('No text to download.');
+                    return;
+                }
+
+                const blob = new Blob([textContent], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'extracted_text.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url); // Clean up the URL
+            });
+        });
+    </script>
+</body>
+</html>
