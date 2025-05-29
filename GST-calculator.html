@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GST Calculator & Image Converter</title>
+  <style>
+    :root {
+      --primary-color: #d0ebff;
+      --secondary-color: #f8f9fa;
+      --accent-color: #228be6;
+      --text-color: #333;
+      --border-radius: 10px;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--secondary-color);
+      margin: 0;
+      padding: 0;
+      color: var(--text-color);
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    h2 {
+      text-align: center;
+      color: var(--accent-color);
+    }
+
+    .card {
+      background-color: white;
+      border-radius: var(--border-radius);
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: var(--border-radius);
+    }
+
+    button {
+      background-color: var(--accent-color);
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #1c7ed6;
+    }
+
+    img {
+      max-width: 100%;
+      margin-top: 15px;
+      border-radius: var(--border-radius);
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <h2>GST Calculator</h2>
+    <div class="card">
+      <label for="amount">Enter Amount:</label>
+      <input type="number" id="amount" placeholder="e.g., 1000" />
+
+      <label for="gst">Select GST %:</label>
+      <select id="gst">
+        <option value="5">5%</option>
+        <option value="12">12%</option>
+        <option value="18" selected>18%</option>
+        <option value="28">28%</option>
+      </select>
+
+      <button onclick="calculateGST()">Calculate GST</button>
+
+      <p id="gstResult"></p>
+    </div>
+
+    <h2>Image Converter</h2>
+    <div class="card">
+      <input type="file" id="imageInput" accept="image/*" />
+
+      <label for="format">Convert To:</label>
+      <select id="format">
+        <option value="image/jpeg">JPG</option>
+        <option value="image/png">PNG</option>
+        <option value="image/webp">WebP</option>
+      </select>
+
+      <button onclick="convertImage()">Convert & Download</button>
+
+      <img id="preview" src="" alt="Preview Image" style="display: none;" />
+    </div>
+
+  </div>
+
+  <script>
+    function calculateGST() {
+      const amount = parseFloat(document.getElementById("amount").value);
+      const gstPercent = parseFloat(document.getElementById("gst").value);
+
+      if (!amount || amount <= 0) {
+        document.getElementById("gstResult").innerText = "Please enter a valid amount.";
+        return;
+      }
+
+      const gstAmount = (amount * gstPercent) / 100;
+      const total = amount + gstAmount;
+
+      document.getElementById("gstResult").innerText =
+        `GST Amount: ₹${gstAmount.toFixed(2)} | Total: ₹${total.toFixed(2)}`;
+    }
+
+    let originalImage = null;
+
+    document.getElementById("imageInput").addEventListener("change", function (event) {
+      const file = event.target.files[0];
+      if (file && file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = document.getElementById("preview");
+          img.src = e.target.result;
+          img.style.display = "block";
+          originalImage = new Image();
+          originalImage.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function convertImage() {
+      const format = document.getElementById("format").value;
+      if (!originalImage) {
+        alert("Please upload an image first.");
+        return;
+      }
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = originalImage.width;
+      canvas.height = originalImage.height;
+      ctx.drawImage(originalImage, 0, 0);
+
+      canvas.toBlob(function (blob) {
+        const link = document.createElement("a");
+        link.download = "converted-image." + format.split("/")[1];
+        link.href = URL.createObjectURL(blob);
+        link.click();
+      }, format, 0.8); // 0.8 = compression quality
+    }
+  </script>
+
+</body>
+</html>
