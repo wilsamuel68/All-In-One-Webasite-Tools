@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Keyword Density Checker</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #00c6ff, #0072ff);
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      text-align: center;
+      padding: 2rem;
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+    main {
+      max-width: 800px;
+      margin: auto;
+      padding: 1rem;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      padding: 1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 10px;
+      resize: vertical;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+    button {
+      background-color: #ff6a00;
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      margin-top: 1rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #ff4500;
+    }
+    table {
+      width: 100%;
+      margin-top: 2rem;
+      background: white;
+      color: black;
+      border-collapse: collapse;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background-color: #0072ff;
+      color: #fff;
+    }
+    @media (max-width: 600px) {
+      textarea {
+        height: 150px;
+      }
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🔍 Keyword Density Checker</h1>
+    <p>Analyze keyword frequency in your content easily.</p>
+  </header>
+  <main>
+    <textarea id="textInput" placeholder="Paste your content here..."></textarea>
+    <button onclick="analyzeKeywords()">Check Density</button>
+    <div id="results"></div>
+  </main>
+
+  <script>
+    function analyzeKeywords() {
+      const text = document.getElementById('textInput').value.toLowerCase();
+      const words = text.match(/\b\w+\b/g) || [];
+      const totalWords = words.length;
+      const wordCount = {};
+
+      words.forEach(word => {
+        wordCount[word] = (wordCount[word] || 0) + 1;
+      });
+
+      const sortedWords = Object.entries(wordCount).sort((a, b) => b[1] - a[1]);
+
+      let resultHTML = `<h2>Results (${totalWords} total words)</h2>`;
+      resultHTML += `<table><tr><th>Keyword</th><th>Count</th><th>Density (%)</th></tr>`;
+
+      sortedWords.forEach(([word, count]) => {
+        const density = ((count / totalWords) * 100).toFixed(2);
+        resultHTML += `<tr><td>${word}</td><td>${count}</td><td>${density}%</td></tr>`;
+      });
+
+      resultHTML += `</table>`;
+      document.getElementById('results').innerHTML = resultHTML;
+    }
+  </script>
+</body>
+</html>
