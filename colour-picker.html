@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Color Picker & Image Converter</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      color: #fff;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #ffffff10;
+      border-radius: 20px;
+      padding: 20px;
+      backdrop-filter: blur(8px);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 1em;
+    }
+    input[type="file"], select, button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    img {
+      width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+    .colors {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .color-box {
+      width: 30px;
+      height: 30px;
+      margin: 5px;
+      border: 2px solid #fff;
+      border-radius: 5px;
+    }
+    @media (max-width: 480px) {
+      h2 {
+        font-size: 1.4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🎨 Color Picker & Image Converter</h2>
+    <input type="file" id="imageInput" accept="image/*" />
+    <select id="formatSelect">
+      <option value="image/jpeg">Convert to JPEG</option>
+      <option value="image/png">Convert to PNG</option>
+      <option value="image/webp">Convert to WEBP</option>
+    </select>
+    <button onclick="convertImage()">Convert & Download</button>
+    <img id="preview" src="" alt="Preview" style="display:none;" />
+    <div class="colors" id="colorsContainer"></div>
+  </div>
+
+  <script>
+    const imageInput = document.getElementById("imageInput");
+    const preview = document.getElementById("preview");
+    const colorsContainer = document.getElementById("colorsContainer");
+
+    let originalImage = null;
+
+    imageInput.addEventListener("change", function () {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          preview.src = e.target.result;
+          preview.style.display = "block";
+          originalImage = new Image();
+          originalImage.src = e.target.result;
+          originalImage.onload = () => extractColors(originalImage);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function extractColors(image) {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = image.width;
+      canvas.height = image.height;
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+      const colorMap = {};
+      for (let i = 0; i < imageData.length; i += 4 * 100) { // sampling
+        const r = imageData[i];
+        const g = imageData[i + 1];
+        const b = imageData[i + 2];
+        const hex = rgbToHex(r, g, b);
+        colorMap[hex] = (colorMap[hex] || 0) + 1;
+      }
+
+      const topColors = Object.entries(colorMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(entry => entry[0]);
+
+      colorsContainer.innerHTML = '';
+      topColors.forEach(color => {
+        const box = document.createElement("div");
+        box.className = "color-box";
+        box.style.backgroundColor = color;
+        box.title = color;
+        colorsContainer.appendChild(box);
+      });
+    }
+
+    function rgbToHex(r, g, b) {
+      return "#" + [r, g, b].map(x =>
+        x.toString(16).padStart(2, "0")
+      ).join("");
+    }
+
+    function convertImage() {
+      if (!originalImage) return alert("Please upload an image first.");
+
+      const format = document.getElementById("formatSelect").value;
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = originalImage.width;
+      canvas.height = originalImage.height;
+      ctx.drawImage(originalImage, 0, 0);
+
+      canvas.toBlob(blob => {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "converted-image." + format.split('/')[1];
+        a.click();
+      }, format, 0.8); // 80% quality
+    }
+  </script>
+</body>
+</html>
