@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JSON Formatter & Image Converter</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #007BFF, #00C6FF);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+      width: 100%;
+      max-width: 800px;
+    }
+
+    textarea, input[type="file"], select, button {
+      width: 100%;
+      margin-top: 10px;
+      margin-bottom: 15px;
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+    }
+
+    textarea {
+      height: 200px;
+      resize: vertical;
+    }
+
+    button {
+      background-color: #0056b3;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #003f7f;
+    }
+
+    img {
+      max-width: 100%;
+      margin-top: 10px;
+      border-radius: 10px;
+    }
+
+    .preview {
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      textarea {
+        height: 150px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>JSON Formatter & Image Converter</h1>
+
+  <div class="container">
+    <h2>JSON Formatter & Validator</h2>
+    <textarea id="jsonInput" placeholder="Paste your JSON here..."></textarea>
+    <button onclick="formatJSON()">Format & Validate</button>
+    <pre id="jsonOutput" style="white-space: pre-wrap; background-color: rgba(255,255,255,0.2); padding: 10px; border-radius: 10px;"></pre>
+  </div>
+
+  <br>
+
+  <div class="container">
+    <h2>Image Format Converter & Compressor</h2>
+    <input type="file" id="imageInput" accept="image/*">
+    <select id="formatSelect">
+      <option value="image/jpeg">JPEG</option>
+      <option value="image/png">PNG</option>
+      <option value="image/webp">WebP</option>
+    </select>
+    <button onclick="convertImage()">Convert & Compress</button>
+    <div class="preview">
+      <p>Preview:</p>
+      <img id="previewImage" src="" alt="">
+    </div>
+    <a id="downloadLink" style="display:none;" download="converted-image">Download Converted Image</a>
+  </div>
+
+  <script>
+    // JSON Formatter
+    function formatJSON() {
+      const input = document.getElementById('jsonInput').value;
+      const output = document.getElementById('jsonOutput');
+      try {
+        const parsed = JSON.parse(input);
+        output.style.color = "#00FFAA";
+        output.textContent = JSON.stringify(parsed, null, 2);
+      } catch (e) {
+        output.style.color = "#FF5555";
+        output.textContent = "Invalid JSON: " + e.message;
+      }
+    }
+
+    // Image Converter
+    function convertImage() {
+      const file = document.getElementById('imageInput').files[0];
+      const format = document.getElementById('formatSelect').value;
+      if (!file) return alert('Please select an image.');
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const scale = 0.8; // compression scale
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            document.getElementById('previewImage').src = url;
+            const link = document.getElementById('downloadLink');
+            link.href = url;
+            link.download = 'converted-image.' + format.split('/')[1];
+            link.style.display = 'block';
+            link.textContent = 'Download Converted Image';
+          }, format, 0.8);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  </script>
+
+</body>
+</html>
