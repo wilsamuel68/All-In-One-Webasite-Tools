@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Color Blindness Simulator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #007cf0, #00dfd8);
+      color: #fff;
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .tool-container {
+      background: #ffffff10;
+      border-radius: 16px;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    input[type="file"] {
+      margin: 1rem 0;
+    }
+
+    select, button {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 8px;
+      margin: 0.5rem;
+      font-size: 1rem;
+    }
+
+    select {
+      background-color: #fff;
+      color: #000;
+    }
+
+    button {
+      background-color: #0066cc;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    canvas {
+      margin-top: 1rem;
+      max-width: 100%;
+      border-radius: 12px;
+    }
+
+    @media (max-width: 500px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      select, button {
+        width: 100%;
+        margin: 0.5rem 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Color Blindness Simulator</h1>
+  <div class="tool-container">
+    <input type="file" id="upload" accept="image/*"><br>
+    <select id="filter">
+      <option value="none">Original</option>
+      <option value="protanopia">Protanopia</option>
+      <option value="deuteranopia">Deuteranopia</option>
+      <option value="tritanopia">Tritanopia</option>
+    </select>
+    <button onclick="applyFilter()">Preview</button>
+    <button onclick="downloadImage()">Download</button>
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let originalImage = null;
+
+    document.getElementById('upload').addEventListener('change', function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        const img = new Image();
+        img.onload = function () {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+          originalImage = ctx.getImageData(0, 0, img.width, img.height);
+        }
+        img.src = event.target.result;
+      }
+      reader.readAsDataURL(file);
+    });
+
+    function applyFilter() {
+      if (!originalImage) return;
+      const filter = document.getElementById('filter').value;
+      const imageData = new ImageData(new Uint8ClampedArray(originalImage.data), originalImage.width, originalImage.height);
+
+      for (let i = 0; i < imageData.data.length; i += 4) {
+        let r = imageData.data[i];
+        let g = imageData.data[i + 1];
+        let b = imageData.data[i + 2];
+
+        if (filter === 'protanopia') {
+          [r, g, b] = [
+            0.567 * r + 0.433 * g,
+            0.558 * r + 0.442 * g,
+            0.0 * r + 0.242 * g + 0.758 * b
+          ];
+        } else if (filter === 'deuteranopia') {
+          [r, g, b] = [
+            0.625 * r + 0.375 * g,
+            0.7 * r + 0.3 * g,
+            0.3 * g + 0.7 * b
+          ];
+        } else if (filter === 'tritanopia') {
+          [r, g, b] = [
+            0.95 * r + 0.05 * b,
+            0.433 * g + 0.567 * b,
+            0.475 * g + 0.525 * b
+          ];
+        }
+
+        imageData.data[i] = r;
+        imageData.data[i + 1] = g;
+        imageData.data[i + 2] = b;
+      }
+
+      ctx.putImageData(imageData, 0, 0);
+    }
+
+    function downloadImage() {
+      const link = document.createElement('a');
+      link.download = 'colorblind_simulated.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+  </script>
+</body>
+</html>
