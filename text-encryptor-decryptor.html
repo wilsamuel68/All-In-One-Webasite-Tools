@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Text Encryptor/Decryptor & Image Converter</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #add8e6, #ffb6c1);
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    textarea, input, select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    button {
+      width: 100%;
+      background: #ff69b4;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background: #ff1493;
+    }
+
+    .preview {
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    img {
+      max-width: 100%;
+      border-radius: 10px;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Text Encryptor / Decryptor</h2>
+    <textarea id="textInput" placeholder="Enter text..."></textarea>
+    <input type="password" id="keyInput" placeholder="Enter secret key...">
+    <button onclick="encryptText()">Encrypt</button>
+    <button onclick="decryptText()">Decrypt</button>
+    <textarea id="output" placeholder="Output..." readonly></textarea>
+
+    <h2>Image Format Converter</h2>
+    <input type="file" id="imageInput" accept="image/*">
+    <select id="formatSelect">
+      <option value="image/png">PNG</option>
+      <option value="image/jpeg">JPEG</option>
+      <option value="image/webp">WEBP</option>
+    </select>
+    <button onclick="convertImage()">Convert & Download</button>
+    <div class="preview">
+      <img id="previewImage" src="" alt="Image Preview">
+    </div>
+  </div>
+
+  <script>
+    // Simple XOR Cipher for demonstration (not secure for real-world use)
+    function xorCipher(str, key) {
+      let result = '';
+      for (let i = 0; i < str.length; i++) {
+        result += String.fromCharCode(str.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+      }
+      return result;
+    }
+
+    function encryptText() {
+      const text = document.getElementById('textInput').value;
+      const key = document.getElementById('keyInput').value;
+      if (!key) return alert('Please enter a key');
+      const encrypted = btoa(xorCipher(text, key));
+      document.getElementById('output').value = encrypted;
+    }
+
+    function decryptText() {
+      const text = document.getElementById('textInput').value;
+      const key = document.getElementById('keyInput').value;
+      if (!key) return alert('Please enter a key');
+      try {
+        const decrypted = xorCipher(atob(text), key);
+        document.getElementById('output').value = decrypted;
+      } catch (e) {
+        alert('Decryption failed. Check your input and key.');
+      }
+    }
+
+    // Image converter
+    function convertImage() {
+      const input = document.getElementById('imageInput');
+      const format = document.getElementById('formatSelect').value;
+      const file = input.files[0];
+      if (!file) return alert('Please upload an image');
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = function () {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          canvas.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `converted.${format.split('/')[1]}`;
+            a.click();
+            document.getElementById('previewImage').src = url;
+          }, format);
+        };
+      };
+      reader.readAsDataURL(file);
+    }
+  </script>
+</body>
+</html>
