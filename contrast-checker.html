@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Image Format Converter & Compressor</title>
+<style>
+  /* Gradient blue theme with accessible contrast */
+  :root {
+    --blue-light: #4facfe;
+    --blue-dark: #00f2fe;
+    --bg-gradient: linear-gradient(135deg, var(--blue-light), var(--blue-dark));
+    --button-bg: #007bff;
+    --button-hover: #0056b3;
+    --text-color: #fff;
+    --container-bg: #0b2240;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg-gradient);
+    color: var(--text-color);
+    display: flex;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .container {
+    background: var(--container-bg);
+    border-radius: 12px;
+    max-width: 480px;
+    width: 100%;
+    padding: 1.5rem;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  h1 {
+    text-align: center;
+    margin: 0 0 1rem;
+    font-weight: 700;
+    font-size: 1.5rem;
+  }
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+  input[type="file"] {
+    width: 100%;
+    padding: 0.3rem;
+    border-radius: 6px;
+    border: none;
+    background: #1a2a4a;
+    color: var(--text-color);
+    cursor: pointer;
+  }
+  select, button {
+    width: 100%;
+    padding: 0.7rem;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    color: var(--text-color);
+    background-color: var(--button-bg);
+    transition: background-color 0.3s ease;
+  }
+  select:focus, button:focus, input[type="file"]:focus {
+    outline: 2px solid #00ffff;
+    outline-offset: 2px;
+  }
+  button:hover {
+    background-color: var(--button-hover);
+  }
+  .preview {
+    background: #152b56;
+    border-radius: 10px;
+    padding: 0.5rem;
+    text-align: center;
+  }
+  .preview img {
+    max-width: 100%;
+    border-radius: 8px;
+    object-fit: contain;
+  }
+  .footer-note {
+    text-align: center;
+    font-size: 0.8rem;
+    opacity: 0.7;
+  }
+
+  @media (max-width: 480px) {
+    .container {
+      padding: 1rem;
+      max-width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="container" role="main" aria-label="Image converter and compressor tool">
+  <h1>Image Format Converter & Compressor</h1>
+  
+  <label for="upload">Upload Image</label>
+  <input type="file" id="upload" accept="image/*" aria-describedby="upload-desc" />
+  <small id="upload-desc" style="color: #ccc;">Supported formats: PNG, JPEG, WEBP, GIF, BMP</small>
+  
+  <label for="format">Convert to format</label>
+  <select id="format" aria-label="Select output image format">
+    <option value="image/png">PNG</option>
+    <option value="image/jpeg">JPEG</option>
+    <option value="image/webp">WEBP</option>
+  </select>
+  
+  <label for="quality">Compression quality (JPEG/WebP only)</label>
+  <input type="range" id="quality" min="0.1" max="1" step="0.05" value="0.85" aria-valuemin="0.1" aria-valuemax="1" aria-valuenow="0.85" />
+  
+  <button id="convertBtn" disabled>Convert & Download</button>
+  
+  <div class="preview" aria-live="polite" aria-atomic="true" aria-label="Image preview">
+    <p>No image uploaded yet.</p>
+  </div>
+  
+  <p class="footer-note">© YourSite - Accessible & Mobile Friendly</p>
+</div>
+
+<script>
+  const uploadInput = document.getElementById('upload');
+  const formatSelect = document.getElementById('format');
+  const qualityInput = document.getElementById('quality');
+  const convertBtn = document.getElementById('convertBtn');
+  const previewContainer = document.querySelector('.preview');
+
+  let originalImage = null; // Image object
+  let imageFile = null;
+
+  function clearPreview() {
+    previewContainer.innerHTML = '<p>No image uploaded yet.</p>';
+  }
+
+  function createImagePreview(file) {
+    const url = URL.createObjectURL(file);
+    previewContainer.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = "Uploaded image preview";
+    previewContainer.appendChild(img);
+  }
+
+  function enableConvert(enabled) {
+    convertBtn.disabled = !enabled;
+  }
+
+  uploadInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) {
+      clearPreview();
+      enableConvert(false);
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload a valid image file.');
+      uploadInput.value = '';
+      clearPreview();
+      enableConvert(false);
+      return;
+    }
+    imageFile = file;
+    createImagePreview(file);
+    enableConvert(true);
+  });
+
+  convertBtn.addEventListener('click', async () => {
+    if (!imageFile) return;
+
+    // Create an Image object from the file
+    const img = new Image();
+    const url = URL.createObjectURL(imageFile);
+
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+
+      // Get selected format and quality
+      const selectedFormat = formatSelect.value;
+      let quality = parseFloat(qualityInput.value);
+      if (selectedFormat === 'image/png') quality = 1; // PNG ignores quality param
+
+      // Convert to Blob
+      canvas.toBlob(
+        blob => {
+          if (!blob) {
+            alert('Conversion failed.');
+            return;
+          }
+          // Trigger download
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          const ext = selectedFormat.split('/')[1];
+          a.download = `converted-image.${ext}`;
+          a.click();
+          URL.revokeObjectURL(a.href);
+        },
+        selectedFormat,
+        quality
+      );
+      URL.revokeObjectURL(url);
+    };
+
+    img.onerror = () => {
+      alert('Failed to load the image for conversion.');
+      URL.revokeObjectURL(url);
+    };
+
+    img.src = url;
+  });
+</script>
+
+</body>
+</html>
