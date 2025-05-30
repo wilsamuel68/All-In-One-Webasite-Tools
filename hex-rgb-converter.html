@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>HEX & RGB Converter + Image Format Converter</title>
+<style>
+  /* Blue gradient theme */
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0d47a1, #1976d2);
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  h1 {
+    margin-bottom: 1rem;
+    font-weight: 700;
+    text-align: center;
+  }
+  section {
+    background: rgba(255 255 255 / 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    width: 100%;
+    max-width: 450px;
+    margin-bottom: 30px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+  }
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  input[type="text"], input[type="file"], select {
+    width: 100%;
+    padding: 8px 12px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    border: none;
+    font-size: 1rem;
+  }
+  button {
+    background: #1565c0;
+    border: none;
+    padding: 10px 16px;
+    font-weight: 600;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.3s ease;
+  }
+  button:hover {
+    background: #0d3c91;
+  }
+  .output {
+    font-size: 1.1rem;
+    font-weight: 700;
+    background: rgba(255 255 255 / 0.15);
+    padding: 10px;
+    border-radius: 8px;
+    word-break: break-word;
+  }
+  /* Image preview styles */
+  #imagePreview {
+    max-width: 100%;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    display: block;
+  }
+  /* Responsive */
+  @media (max-width: 500px) {
+    section {
+      max-width: 100%;
+      padding: 15px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1>HEX & RGB Converter + Image Format Converter</h1>
+
+<section aria-label="HEX to RGB Converter">
+  <h2>HEX &lt;&gt; RGB Converter</h2>
+  <label for="hexInput">Enter HEX color (e.g. #3498db):</label>
+  <input type="text" id="hexInput" placeholder="#3498db or 3498db" maxlength="7" autocomplete="off" />
+
+  <label for="rgbInput">Enter RGB color (e.g. 52, 152, 219):</label>
+  <input type="text" id="rgbInput" placeholder="52, 152, 219" autocomplete="off" />
+
+  <button id="convertHexToRgb">Convert HEX → RGB</button>
+  <button id="convertRgbToHex" style="margin-top:8px;">Convert RGB → HEX</button>
+
+  <div class="output" id="colorOutput" aria-live="polite" style="margin-top:15px;"></div>
+</section>
+
+<section aria-label="Image Upload and Format Converter">
+  <h2>Image Upload & Format Converter</h2>
+
+  <input type="file" id="imageInput" accept="image/*" />
+  <img id="imagePreview" alt="Image preview will appear here" style="display:none;" />
+  
+  <label for="formatSelect">Convert to format:</label>
+  <select id="formatSelect" aria-label="Select image format to convert">
+    <option value="image/png">PNG</option>
+    <option value="image/jpeg">JPEG</option>
+    <option value="image/webp">WEBP</option>
+  </select>
+
+  <button id="convertImageBtn">Convert & Download</button>
+</section>
+
+<script>
+  // HEX to RGB conversion helpers
+  function hexToRgb(hex) {
+    hex = hex.replace(/^#/, '').trim();
+    if (!/^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{6}$/.test(hex)) return null;
+    if (hex.length === 3) {
+      hex = hex.split('').map(ch => ch + ch).join('');
+    }
+    const bigint = parseInt(hex, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return [r, g, b];
+  }
+  function rgbToHex(r, g, b) {
+    if ([r,g,b].some(x => x < 0 || x > 255 || isNaN(x))) return null;
+    return "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+  }
+
+  const hexInput = document.getElementById('hexInput');
+  const rgbInput = document.getElementById('rgbInput');
+  const colorOutput = document.getElementById('colorOutput');
+  const convertHexToRgbBtn = document.getElementById('convertHexToRgb');
+  const convertRgbToHexBtn = document.getElementById('convertRgbToHex');
+
+  convertHexToRgbBtn.addEventListener('click', () => {
+    const hex = hexInput.value.trim();
+    const rgb = hexToRgb(hex);
+    if (rgb) {
+      colorOutput.textContent = `RGB: ${rgb.join(', ')}`;
+      rgbInput.value = rgb.join(', ');
+    } else {
+      colorOutput.textContent = 'Invalid HEX color code.';
+    }
+  });
+
+  convertRgbToHexBtn.addEventListener('click', () => {
+    const rgbStr = rgbInput.value.trim();
+    const parts = rgbStr.split(',').map(s => Number(s.trim()));
+    if (parts.length === 3 && parts.every(n => !isNaN(n))) {
+      const hex = rgbToHex(...parts);
+      if (hex) {
+        colorOutput.textContent = `HEX: ${hex}`;
+        hexInput.value = hex;
+      } else {
+        colorOutput.textContent = 'RGB values must be between 0 and 255.';
+      }
+    } else {
+      colorOutput.textContent = 'Enter RGB in format: R, G, B';
+    }
+  });
+
+  // Image converter
+  const imageInput = document.getElementById('imageInput');
+  const imagePreview = document.getElementById('imagePreview');
+  const formatSelect = document.getElementById('formatSelect');
+  const convertImageBtn = document.getElementById('convertImageBtn');
+
+  let loadedImage = null;
+
+  imageInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      loadedImage = new Image();
+      loadedImage.onload = () => {
+        imagePreview.src = loadedImage.src;
+        imagePreview.style.display = 'block';
+      };
+      loadedImage.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  convertImageBtn.addEventListener('click', () => {
+    if (!loadedImage) {
+      alert('Please upload an image first.');
+      return;
+    }
+    const format = formatSelect.value;
+    // Create canvas
+    const canvas = document.createElement('canvas');
+    canvas.width = loadedImage.naturalWidth;
+    canvas.height = loadedImage.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(loadedImage, 0, 0);
+    canvas.toBlob(blob => {
+      if (!blob) {
+        alert('Conversion failed.');
+        return;
+      }
+      // Download link
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      // File extension based on format
+      let ext = 'png';
+      if (format === 'image/jpeg') ext = 'jpg';
+      else if (format === 'image/webp') ext = 'webp';
+      a.download = `converted-image.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }, format);
+  });
+</script>
+
+</body>
+</html>
