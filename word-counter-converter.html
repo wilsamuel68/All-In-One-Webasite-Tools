@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Word Counter & Image Converter</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #8e44ad, #3498db);
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #2c3e50;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 10px;
+      font-size: 1em;
+      border: none;
+      border-radius: 10px;
+      resize: vertical;
+    }
+
+    .counts {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 10px;
+    }
+
+    .counts div {
+      background: #1abc9c;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+    }
+
+    .image-section {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    input[type="file"], select, button {
+      margin-top: 10px;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1em;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      margin-top: 15px;
+      border-radius: 10px;
+    }
+
+    button {
+      background-color: #e67e22;
+      color: white;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+
+    button:hover {
+      background-color: #d35400;
+    }
+
+    @media (max-width: 600px) {
+      .counts {
+        flex-direction: column;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Word Counter</h1>
+    <textarea id="text-input" placeholder="Type or paste your text here..."></textarea>
+    <div class="counts">
+      <div>Words: <span id="word-count">0</span></div>
+      <div>Characters: <span id="char-count">0</span></div>
+      <div>Sentences: <span id="sentence-count">0</span></div>
+    </div>
+
+    <div class="image-section">
+      <h2>Image Converter</h2>
+      <input type="file" id="imageInput" accept="image/*" />
+      <br />
+      <select id="formatSelect">
+        <option value="image/jpeg">Convert to JPEG</option>
+        <option value="image/png">Convert to PNG</option>
+        <option value="image/webp">Convert to WEBP</option>
+      </select>
+      <br />
+      <img id="preview" src="#" alt="Preview will appear here" style="display:none;" />
+      <br />
+      <button id="downloadBtn" style="display:none;">Download Converted Image</button>
+    </div>
+  </div>
+
+  <script>
+    // Word counter
+    const textInput = document.getElementById('text-input');
+    const wordCount = document.getElementById('word-count');
+    const charCount = document.getElementById('char-count');
+    const sentenceCount = document.getElementById('sentence-count');
+
+    textInput.addEventListener('input', () => {
+      const text = textInput.value.trim();
+      wordCount.textContent = text ? text.split(/\s+/).length : 0;
+      charCount.textContent = text.length;
+      sentenceCount.textContent = text ? (text.match(/[\w|\)][.?!](\s|$)/g) || []).length : 0;
+    });
+
+    // Image converter
+    const imageInput = document.getElementById('imageInput');
+    const preview = document.getElementById('preview');
+    const formatSelect = document.getElementById('formatSelect');
+    const downloadBtn = document.getElementById('downloadBtn');
+    let convertedImageURL;
+
+    imageInput.addEventListener('change', function () {
+      const file = this.files[0];
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = new Image();
+          img.onload = function () {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+
+            const format = formatSelect.value;
+            convertedImageURL = canvas.toDataURL(format, 0.8);
+            preview.src = convertedImageURL;
+            preview.style.display = 'block';
+            downloadBtn.style.display = 'inline-block';
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      const a = document.createElement('a');
+      a.href = convertedImageURL;
+      a.download = 'converted-image.' + formatSelect.value.split('/')[1];
+      a.click();
+    });
+  </script>
+</body>
+</html>
