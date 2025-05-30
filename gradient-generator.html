@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gradient & Image Converter Tool</title>
+<style>
+  /* Reset */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #0a2a5e;
+    color: #e0e7ff;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 1rem;
+  }
+  h1, h2 {
+    color: #a5b8ff;
+    margin-bottom: 0.5rem;
+  }
+  section {
+    background: #142e85;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 15px rgba(15, 41, 103, 0.4);
+  }
+  /* Gradient Generator */
+  #gradient-generator {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .gradient-preview {
+    width: 100%;
+    height: 140px;
+    border-radius: 12px;
+    margin: 1rem 0;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+    transition: background 0.4s ease;
+  }
+  .color-inputs {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .color-inputs label {
+    flex: 1 1 45%;
+    display: flex;
+    flex-direction: column;
+    font-size: 0.9rem;
+    color: #b0c4ff;
+  }
+  input[type=color] {
+    margin-top: 0.3rem;
+    height: 40px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+  }
+  pre {
+    background: #0d1e5f;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    user-select: all;
+    font-family: Consolas, monospace;
+    font-size: 0.9rem;
+    color: #c8d0ff;
+  }
+
+  /* Image Converter */
+  #image-converter {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .upload-btn {
+    background: #2a56f5;
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    font-size: 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-bottom: 1rem;
+    width: 100%;
+  }
+  .upload-btn:hover {
+    background: #1e3ac7;
+  }
+  #image-preview {
+    display: block;
+    max-width: 100%;
+    max-height: 320px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 0, 255, 0.3);
+    margin-bottom: 1rem;
+    object-fit: contain;
+  }
+  .format-select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+  .download-btn {
+    background: #3b73ff;
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    font-size: 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.3s ease;
+  }
+  .download-btn:disabled {
+    background: #6a8cffaa;
+    cursor: not-allowed;
+  }
+  .download-btn:hover:not(:disabled) {
+    background: #1e40ff;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    body {
+      padding: 1rem 0.5rem;
+    }
+    .color-inputs label {
+      flex: 1 1 100%;
+    }
+  }
+</style>
+</head>
+<body>
+
+<section id="gradient-generator" aria-label="CSS Gradient Generator">
+  <h1>Gradient Generator</h1>
+  <div class="color-inputs">
+    <label>
+      Color 1
+      <input type="color" id="color1" value="#1e3a8a" aria-describedby="color1Desc" />
+      <small id="color1Desc">Start color of the gradient</small>
+    </label>
+    <label>
+      Color 2
+      <input type="color" id="color2" value="#3b82f6" aria-describedby="color2Desc" />
+      <small id="color2Desc">End color of the gradient</small>
+    </label>
+  </div>
+
+  <label for="direction" style="margin-top:1rem; display:block; color:#b0c4ff;">
+    Gradient Direction
+  </label>
+  <select id="direction" class="format-select" aria-label="Gradient direction selector">
+    <option value="to right">Left to Right</option>
+    <option value="to bottom">Top to Bottom</option>
+    <option value="45deg">Diagonal 45°</option>
+    <option value="135deg">Diagonal 135°</option>
+    <option value="to top right">To Top Right</option>
+  </select>
+
+  <div class="gradient-preview" id="gradientPreview" aria-live="polite" aria-atomic="true"></div>
+
+  <h2>CSS Code</h2>
+  <pre id="cssCode" aria-label="CSS Gradient code"></pre>
+</section>
+
+<section id="image-converter" aria-label="Image Upload and Converter">
+  <h1>Image Converter & Compressor</h1>
+  <input type="file" id="imageUpload" accept="image/*" class="upload-btn" aria-label="Upload an image" />
+  <img id="image-preview" alt="Image preview" hidden />
+  <label for="imageFormat" style="color:#b0c4ff;">Select Output Format</label>
+  <select id="imageFormat" class="format-select" aria-label="Select image output format">
+    <option value="image/jpeg">JPEG (Compressed)</option>
+    <option value="image/png">PNG (Lossless)</option>
+    <option value="image/webp">WebP (Compressed)</option>
+  </select>
+  <button id="downloadBtn" class="download-btn" disabled>Download Converted Image</button>
+</section>
+
+<script>
+  // Gradient Generator Logic
+  const color1 = document.getElementById('color1');
+  const color2 = document.getElementById('color2');
+  const direction = document.getElementById('direction');
+  const gradientPreview = document.getElementById('gradientPreview');
+  const cssCode = document.getElementById('cssCode');
+
+  function updateGradient() {
+    const c1 = color1.value;
+    const c2 = color2.value;
+    const dir = direction.value;
+    const gradient = `linear-gradient(${dir}, ${c1}, ${c2})`;
+    gradientPreview.style.background = gradient;
+    cssCode.textContent = `background: ${gradient};`;
+  }
+
+  color1.addEventListener('input', updateGradient);
+  color2.addEventListener('input', updateGradient);
+  direction.addEventListener('change', updateGradient);
+
+  updateGradient();
+
+  // Image Converter Logic
+  const imageUpload = document.getElementById('imageUpload');
+  const imagePreview = document.getElementById('image-preview');
+  const imageFormat = document.getElementById('imageFormat');
+  const downloadBtn = document.getElementById('downloadBtn');
+
+  let originalImage = null;
+
+  imageUpload.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload a valid image file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      imagePreview.src = reader.result;
+      imagePreview.hidden = false;
+      originalImage = new Image();
+      originalImage.src = reader.result;
+      originalImage.onload = () => {
+        downloadBtn.disabled = false;
+      };
+    };
+    reader.readAsDataURL(file);
+  });
+
+  downloadBtn.addEventListener('click', () => {
+    if (!originalImage) return;
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Set canvas size same as image
+    canvas.width = originalImage.naturalWidth;
+    canvas.height = originalImage.naturalHeight;
+    ctx.drawImage(originalImage, 0, 0);
+
+    // Compression quality (0.75 for compressed formats)
+    const quality = 0.75;
+    const format = imageFormat.value;
+
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          alert('Error generating image blob.');
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+
+        // Default filename with extension
+        let ext = format.split('/')[1];
+        if (ext === 'jpeg') ext = 'jpg';
+
+        a.download = `converted-image.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        }, 100);
+      },
+      format,
+      format === 'image/png' ? 1 : quality // PNG is lossless, so quality=1
+    );
+  });
+</script>
+
+</body>
+</html>
