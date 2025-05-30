@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Base64 Image Encoder/Decoder</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #007BFF, #00C6FF);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .container {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 15px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+    }
+
+    input[type="file"],
+    textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      resize: vertical;
+    }
+
+    textarea {
+      height: 150px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #0066cc;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #004c99;
+    }
+
+    img {
+      width: 100%;
+      margin-top: 15px;
+      border-radius: 10px;
+    }
+
+    .download-btn {
+      margin-top: 10px;
+      background: #00bfff;
+    }
+
+    @media screen and (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+
+      button {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Base64 Image Encoder/Decoder</h1>
+  <div class="container">
+    <div class="input-group">
+      <input type="file" id="imageInput" accept="image/*" />
+    </div>
+
+    <button onclick="encodeImage()">Encode to Base64</button>
+    <button onclick="decodeBase64()">Decode Base64</button>
+
+    <div class="input-group">
+      <textarea id="base64Output" placeholder="Base64 Output / Input here..."></textarea>
+    </div>
+
+    <img id="previewImage" src="" alt="Preview" style="display:none;"/>
+
+    <a id="downloadLink" class="download-btn" style="display:none;" download="image.png">
+      <button class="download-btn">Download Decoded Image</button>
+    </a>
+  </div>
+
+  <script>
+    const imageInput = document.getElementById('imageInput');
+    const base64Output = document.getElementById('base64Output');
+    const previewImage = document.getElementById('previewImage');
+    const downloadLink = document.getElementById('downloadLink');
+
+    function encodeImage() {
+      const file = imageInput.files[0];
+      if (!file) {
+        alert('Please select an image file.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        base64Output.value = e.target.result;
+        previewImage.src = e.target.result;
+        previewImage.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function decodeBase64() {
+      const base64 = base64Output.value.trim();
+      if (!base64) {
+        alert('Please enter a Base64 string.');
+        return;
+      }
+
+      previewImage.src = base64;
+      previewImage.style.display = 'block';
+
+      // Create Blob and Download
+      fetch(base64)
+        .then(res => res.blob())
+        .then(blob => {
+          const url = URL.createObjectURL(blob);
+          downloadLink.href = url;
+          downloadLink.style.display = 'block';
+        })
+        .catch(err => {
+          alert('Invalid Base64 string');
+          console.error(err);
+        });
+    }
+  </script>
+</body>
+</html>
