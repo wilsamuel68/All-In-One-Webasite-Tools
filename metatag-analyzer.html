@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Meta Tag Analyzer & Image Converter</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #00c6ff, #0072ff);
+      margin: 0;
+      padding: 0;
+      color: #fff;
+    }
+
+    header {
+      text-align: center;
+      padding: 2rem 1rem;
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+
+    header h1 {
+      font-size: 2rem;
+      margin: 0;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      padding: 1rem;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    section {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 1.5rem;
+      border-radius: 12px;
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #fff;
+    }
+
+    input[type="url"],
+    input[type="file"],
+    select,
+    button {
+      width: 100%;
+      padding: 0.8rem;
+      margin: 0.5rem 0 1rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    button {
+      background-color: #ffc107;
+      color: #000;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #ff9800;
+    }
+
+    #meta-results, #image-preview {
+      background-color: rgba(255, 255, 255, 0.2);
+      padding: 1rem;
+      border-radius: 10px;
+      word-wrap: break-word;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Meta Tag Analyzer & Image Converter</h1>
+  </header>
+
+  <main>
+    <!-- Meta Tag Analyzer -->
+    <section>
+      <h2>Meta Tag Analyzer</h2>
+      <input type="url" id="urlInput" placeholder="Enter webpage URL">
+      <button onclick="analyzeMetaTags()">Analyze</button>
+      <div id="meta-results"></div>
+    </section>
+
+    <!-- Image Converter -->
+    <section>
+      <h2>Image Converter & Compressor</h2>
+      <input type="file" id="imageInput" accept="image/*" />
+      <select id="formatSelect">
+        <option value="image/jpeg">Convert to JPEG</option>
+        <option value="image/png">Convert to PNG</option>
+        <option value="image/webp">Convert to WebP</option>
+      </select>
+      <button onclick="convertImage()">Convert & Download</button>
+      <div id="image-preview"></div>
+    </section>
+  </main>
+
+  <script>
+    // --- Meta Tag Analyzer ---
+    async function analyzeMetaTags() {
+      const url = document.getElementById("urlInput").value;
+      const results = document.getElementById("meta-results");
+      results.innerHTML = "Analyzing...";
+
+      try {
+        const proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(url);
+        const res = await fetch(proxyUrl);
+        const data = await res.json();
+        const doc = new DOMParser().parseFromString(data.contents, "text/html");
+
+        const title = doc.querySelector("title")?.innerText || "N/A";
+        const description = doc.querySelector('meta[name="description"]')?.content || "N/A";
+        const keywords = doc.querySelector('meta[name="keywords"]')?.content || "N/A";
+
+        results.innerHTML = `
+          <strong>Title:</strong> ${title}<br>
+          <strong>Description:</strong> ${description}<br>
+          <strong>Keywords:</strong> ${keywords}<br>
+        `;
+      } catch (error) {
+        results.innerHTML = "Failed to fetch meta tags. Check the URL or try again.";
+      }
+    }
+
+    // --- Image Converter ---
+    function convertImage() {
+      const fileInput = document.getElementById('imageInput');
+      const format = document.getElementById('formatSelect').value;
+      const preview = document.getElementById('image-preview');
+
+      if (!fileInput.files[0]) {
+        alert("Please upload an image first.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+
+          canvas.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            preview.innerHTML = `<img src="${url}" alt="Converted Image" /><br>`;
+            const downloadBtn = document.createElement('a');
+            downloadBtn.href = url;
+            downloadBtn.download = "converted_image." + format.split("/")[1];
+            downloadBtn.innerText = "Download Converted Image";
+            downloadBtn.style.display = 'inline-block';
+            downloadBtn.style.padding = '0.6rem';
+            downloadBtn.style.backgroundColor = '#4caf50';
+            downloadBtn.style.color = '#fff';
+            downloadBtn.style.borderRadius = '6px';
+            downloadBtn.style.marginTop = '10px';
+            preview.appendChild(downloadBtn);
+          }, format, 0.8); // compression quality
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(fileInput.files[0]);
+    }
+  </script>
+</body>
+</html>
