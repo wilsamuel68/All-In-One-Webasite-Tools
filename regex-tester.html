@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Regex Tester & Image Converter</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: white;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    }
+    .section {
+      margin-bottom: 30px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input[type="text"], textarea, select {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      margin-top: 5px;
+      font-size: 1em;
+      color: #000;
+    }
+    button {
+      padding: 10px 20px;
+      background: #00c6ff;
+      background: linear-gradient(to right, #0072ff, #00c6ff);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 1em;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    .result {
+      background: white;
+      color: #333;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.5em;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Regex Tester & Image Converter</h1>
+
+    <!-- Regex Tester Section -->
+    <div class="section">
+      <h2>🧪 Regex Tester</h2>
+      <label for="regex">Regular Expression:</label>
+      <input type="text" id="regex" placeholder="e.g. \\d{3}-\\d{2}-\\d{4}">
+
+      <label for="testString">Test String:</label>
+      <textarea id="testString" rows="4" placeholder="Type your test string here..."></textarea>
+
+      <button onclick="testRegex()">Test Regex</button>
+
+      <div id="regexResult" class="result"></div>
+    </div>
+
+    <!-- Image Converter Section -->
+    <div class="section">
+      <h2>🖼️ Image Converter</h2>
+      <label for="imageInput">Upload Image:</label>
+      <input type="file" id="imageInput" accept="image/*">
+
+      <label for="format">Convert to format:</label>
+      <select id="format">
+        <option value="image/jpeg">JPEG</option>
+        <option value="image/png">PNG</option>
+        <option value="image/webp">WebP</option>
+      </select>
+
+      <button onclick="convertImage()">Convert & Compress</button>
+
+      <div id="previewContainer">
+        <h3>Preview:</h3>
+        <img id="preview" src="" alt="Image Preview">
+        <a id="downloadLink" style="display:none;" download="converted-image">Download Image</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Regex Tester Function
+    function testRegex() {
+      const pattern = document.getElementById("regex").value;
+      const testStr = document.getElementById("testString").value;
+      let output = "";
+
+      try {
+        const regex = new RegExp(pattern, 'g');
+        const matches = testStr.match(regex);
+        output = matches ? `✅ Matches found:\n${matches.join("\n")}` : "❌ No matches found.";
+      } catch (e) {
+        output = `⚠️ Invalid Regex: ${e.message}`;
+      }
+
+      document.getElementById("regexResult").innerText = output;
+    }
+
+    // Image Converter Function
+    function convertImage() {
+      const file = document.getElementById("imageInput").files[0];
+      const format = document.getElementById("format").value;
+
+      if (!file) {
+        alert("Please upload an image first.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          const scaleSize = MAX_WIDTH / img.width;
+          canvas.width = MAX_WIDTH;
+          canvas.height = img.height * scaleSize;
+
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          canvas.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            const preview = document.getElementById("preview");
+            const link = document.getElementById("downloadLink");
+
+            preview.src = url;
+            link.href = url;
+            link.style.display = 'inline-block';
+            link.innerText = "⬇️ Download Image";
+          }, format, 0.8); // Quality 80%
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  </script>
+
+</body>
+</html>
