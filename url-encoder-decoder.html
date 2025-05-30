@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URL Encoder/Decoder & Image Converter</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #1e3c72, #2a5298);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 20px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      margin-bottom: 30px;
+    }
+
+    textarea, select, input[type="file"], button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      height: 100px;
+      resize: vertical;
+    }
+
+    button {
+      background-color: #0d6efd;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #0b5ed7;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+
+    .preview-section {
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>URL Encoder/Decoder & Image Converter</h1>
+
+  <!-- URL Encoder/Decoder -->
+  <div class="container">
+    <h2>🔗 URL Encoder/Decoder</h2>
+    <textarea id="urlInput" placeholder="Enter URL here..."></textarea>
+    <button onclick="encodeURL()">Encode</button>
+    <button onclick="decodeURL()">Decode</button>
+    <textarea id="urlOutput" placeholder="Result will appear here..." readonly></textarea>
+  </div>
+
+  <!-- Image Converter -->
+  <div class="container">
+    <h2>🖼️ Image Format Converter</h2>
+    <input type="file" id="imageInput" accept="image/*" />
+    <select id="formatSelect">
+      <option value="image/jpeg">JPEG</option>
+      <option value="image/png">PNG</option>
+      <option value="image/webp">WebP</option>
+    </select>
+    <button onclick="convertImage()">Convert & Download</button>
+
+    <div class="preview-section">
+      <h3>Preview:</h3>
+      <img id="previewImage" src="#" alt="Image Preview" style="display: none;" />
+    </div>
+  </div>
+
+  <script>
+    // URL Encode/Decode Functions
+    function encodeURL() {
+      const input = document.getElementById('urlInput').value;
+      document.getElementById('urlOutput').value = encodeURIComponent(input);
+    }
+
+    function decodeURL() {
+      const input = document.getElementById('urlInput').value;
+      document.getElementById('urlOutput').value = decodeURIComponent(input);
+    }
+
+    // Image Conversion Logic
+    function convertImage() {
+      const input = document.getElementById('imageInput');
+      const format = document.getElementById('formatSelect').value;
+
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = new Image();
+          img.onload = function() {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+
+            canvas.toBlob(function(blob) {
+              const url = URL.createObjectURL(blob);
+
+              // Preview
+              const preview = document.getElementById('previewImage');
+              preview.src = url;
+              preview.style.display = 'block';
+
+              // Download
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = 'converted-image.' + format.split('/')[1];
+              link.click();
+            }, format, 0.9); // Quality
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+  </script>
+
+</body>
+</html>
