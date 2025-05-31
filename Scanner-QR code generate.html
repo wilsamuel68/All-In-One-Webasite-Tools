@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR & Image Tool</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #FF6B6B, #FFD93D);
+            --secondary-gradient: linear-gradient(135deg, #4ECDC4, #57CA85);
+            --text-color: #333;
+            --light-bg: #f9f9f9;
+            --white: #ffffff;
+            --border-color: #ddd;
+            --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            --button-hover-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--light-bg);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            margin-top: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            background: linear-gradient(90deg, #4ECDC4, #57CA85);
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            color: var(--white);
+            padding: 12px 25px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+            border-radius: 10px;
+            margin: 0 10px;
+        }
+
+        .tab-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .tab-button.active {
+            background: var(--white);
+            color: #4ECDC4;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .tab-content {
+            padding: 30px;
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            text-align: center;
+            color: #FF6B6B;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .input-group input[type="text"],
+        .input-group textarea,
+        .input-group select,
+        .input-group input[type="file"] {
+            width: calc(100% - 20px);
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1em;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .input-group input[type="text"]:focus,
+        .input-group textarea:focus,
+        .input-group select:focus,
+        .input-group input[type="file"]:focus {
+            border-color: #FF6B6B;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
+            outline: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.05em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            color: var(--white);
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-gradient);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--button-hover-shadow);
+        }
+
+        #qrCodeDisplay {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px dashed var(--border-color);
+            border-radius: 10px;
+            background: var(--light-bg);
+        }
+
+        #qrCodeDisplay img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-message {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        #qrScannerVideo {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border-radius: 10px;
+            display: block;
+            margin: 20px auto;
+            background-color: #000;
+        }
+
+        #qrScannerResult {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #FF6B6B;
+            word-break: break-all;
+        }
+
+        #imagePreview {
+            max-width: 100%;
+            height: auto;
+            max-height: 300px;
+            display: block;
+            margin: 20px auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .compression-info {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #777;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                margin-top: 10px;
+                border-radius: 15px;
+                padding: 0;
+            }
+
+            .tabs {
+                flex-direction: column;
+                padding: 10px 0;
+            }
+
+            .tab-button {
+                margin: 5px 15px;
+                padding: 10px 20px;
+                font-size: 1em;
+            }
+
+            .tab-content {
+                padding: 20px;
+            }
+
+            h2 {
+                font-size: 1.5em;
+                margin-bottom: 20px;
+            }
+
+            .input-group input[type="text"],
+            .input-group textarea,
+            .input-group select,
+            .input-group input[type="file"] {
+                padding: 10px;
+                font-size: 0.95em;
+            }
+
+            .btn {
+                width: 100%;
+                padding: 12px;
+                font-size: 1em;
+            }
+
+            .button-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            #qrScannerVideo {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                border-radius: 10px;
+            }
+
+            .tab-button {
+                font-size: 0.9em;
+                padding: 8px 15px;
+            }
+
+            .tab-content {
+                padding: 15px;
+            }
+
+            h2 {
+                font-size: 1.3em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tabs">
+            <button class="tab-button active" data-tab="qr-generator">QR Generator</button>
+            <button class="tab-button" data-tab="qr-scanner">QR Scanner</button>
+            <button class="tab-button" data-tab="image-converter">Image Converter</button>
+        </div>
+
+        <div id="qr-generator" class="tab-content active">
+            <h2>Generate QR Code</h2>
+            <div class="input-group">
+                <label for="qrInput">Enter URL or Text:</label>
+                <textarea id="qrInput" rows="4" placeholder="e.g., https://www.example.com or Your custom text"></textarea>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="generateQrCode()">Generate QR Code</button>
+                <button class="btn btn-secondary" onclick="downloadQrCode()">Download QR Code</button>
+            </div>
+            <div id="qrCodeDisplay">
+                <p class="result-message">Your QR code will appear here.</p>
+            </div>
+        </div>
+
+        <div id="qr-scanner" class="tab-content">
+            <h2>Scan QR Code</h2>
+            <div class="input-group">
+                <label for="qrImageUpload">Upload QR Code Image:</label>
+                <input type="file" id="qrImageUpload" accept="image/*" onchange="scanQrCodeFromUpload()">
+            </div>
+            <p class="result-message">Or scan directly from camera:</p>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="startQrScanner()">Start Camera Scanner</button>
+                <button class="btn btn-secondary" onclick="stopQrScanner()">Stop Camera Scanner</button>
+            </div>
+            <video id="qrScannerVideo" playsinline style="display: none;"></video>
+            <div id="qrScannerResult" class="result-message">Scanned Result: None</div>
+        </div>
+
+        <div id="image-converter" class="tab-content">
+            <h2>Image Converter</h2>
+            <div class="input-group">
+                <label for="imageUpload">Upload Image:</label>
+                <input type="file" id="imageUpload" accept="image/*" onchange="previewImage()">
+            </div>
+            <div class="input-group">
+                <label for="outputFormat">Convert to Format:</label>
+                <select id="outputFormat">
+                    <option value="jpeg">JPEG</option>
+                    <option value="png">PNG</option>
+                    <option value="webp">WEBP</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="compressionQuality">Compression Quality (0-1):</label>
+                <input type="range" id="compressionQuality" min="0" max="1" step="0.05" value="0.8">
+                <span id="qualityValue">0.8</span>
+            </div>
+            <img id="imagePreview" src="#" alt="Image Preview" style="display: none;">
+            <p class="compression-info" id="originalSizeInfo">Original Size: N/A</p>
+            <p class="compression-info" id="compressedSizeInfo">Compressed Size: N/A</p>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="convertAndDownloadImage()">Convert & Download</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <script>
+        // Tab functionality
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+                button.classList.add('active');
+                document.getElementById(button.dataset.tab).classList.add('active');
+
+                // Stop camera scanner if switching tabs
+                if (button.dataset.tab !== 'qr-scanner' && html5QrCodeScanner) {
+                    stopQrScanner();
+                }
+            });
+        });
+
+        // QR Code Generator
+        function generateQrCode() {
+            const qrInput = document.getElementById('qrInput').value;
+            const qrCodeDisplay = document.getElementById('qrCodeDisplay');
+            qrCodeDisplay.innerHTML = ''; // Clear previous QR code
+
+            if (qrInput) {
+                new QRCode(qrCodeDisplay, {
+                    text: qrInput,
+                    width: 256,
+                    height: 256,
+                    colorDark : "#FF6B6B",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+                const imgElement = qrCodeDisplay.querySelector('img');
+                if (imgElement) {
+                    imgElement.alt = "Generated QR Code";
+                }
+                document.querySelector('#qrCodeDisplay .result-message').style.display = 'none';
+            } else {
+                qrCodeDisplay.innerHTML = '<p class="result-message" style="color: #FF6B6B;">Please enter some text or URL to generate a QR code.</p>';
+            }
+        }
+
+        function downloadQrCode() {
+            const qrCodeDisplay = document.getElementById('qrCodeDisplay');
+            const img = qrCodeDisplay.querySelector('img');
+
+            if (img) {
+                const link = document.createElement('a');
+                link.href = img.src;
+                link.download = 'qrcode.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                alert('Please generate a QR code first.');
+            }
+        }
+
+        // QR Code Scanner
+        let html5QrCodeScanner = null;
+        const qrScannerResult = document.getElementById('qrScannerResult');
+        const qrScannerVideo = document.getElementById('qrScannerVideo');
+
+        function onScanSuccess(decodedText, decodedResult) {
+            qrScannerResult.textContent = `Scanned Result: ${decodedText}`;
+            stopQrScanner(); // Stop scanner after successful scan
+        }
+
+        function onScanError(errorMessage) {
+            // console.warn(`QR Code Scan Error: ${errorMessage}`);
+        }
+
+        function startQrScanner() {
+            if (html5QrCodeScanner) {
+                stopQrScanner(); // Stop any existing scanner
+            }
+            qrScannerVideo.style.display = 'block';
+            qrScannerResult.textContent = 'Scanned Result: Scanning...';
+            html5QrCodeScanner = new Html5QrcodeScanner(
+                "qrScannerVideo", { fps: 10, qrbox: { width: 250, height: 250 } }, /* verbose=false */);
+            html5QrCodeScanner.render(onScanSuccess, onScanError);
+        }
+
+        function stopQrScanner() {
+            if (html5QrCodeScanner) {
+                html5QrCodeScanner.clear().then(() => {
+                    qrScannerVideo.style.display = 'none';
+                    qrScannerResult.textContent = 'Scanned Result: None';
+                    console.log("QR Code scanner stopped.");
+                }).catch(error => {
+                    console.error("Failed to clear html5QrCodeScanner.", error);
+                });
+                html5QrCodeScanner = null;
+            }
+        }
+
+        function scanQrCodeFromUpload() {
+            const fileInput = document.getElementById('qrImageUpload');
+            const file = fileInput.files[0];
+
+            if (file) {
+                qrScannerResult.textContent = 'Scanned Result: Processing image...';
+                const image = new Image();
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    image.src = e.target.result;
+                    image.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        canvas.width = image.width;
+                        canvas.height = image.height;
+                        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+                        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+                        try {
+                            const code = jsQR(imageData.data, imageData.width, imageData.height);
+                            if (code) {
+                                qrScannerResult.textContent = `Scanned Result: ${code.data}`;
+                            } else {
+                                qrScannerResult.textContent = 'Scanned Result: No QR code found in image.';
+                            }
+                        } catch (error) {
+                            qrScannerResult.textContent = `Scanned Result: Error scanning image.`;
+                            console.error("Error with jsQR:", error);
+                        }
+                    };
+                };
+                reader.readAsDataURL(file);
+            } else {
+                qrScannerResult.textContent = 'Scanned Result: Please upload an image.';
+            }
+        }
+        // Include jsQR library for image scanning
+        // This should ideally be loaded from a CDN or included in the project
+        // For this single-file tool, we'll place it directly.
+        // You can get the latest version from: https://raw.githubusercontent.com/cozmo/jsQR/master/dist/jsQR.min.js
+        const jsQR = (function() {
+            "use strict";
+            function g(a) {
+                for (var b = 0, d = 0; d < a.length; d++) b = (b << 5) - b + a.charCodeAt(d) | 0;
+                return b
+            }
+            function h(a, b, d) {
+                var c = a.data;
+                if ("object" === typeof c) {
+                    var f = c[0];
+                    if (f instanceof Uint8ClampedArray || f instanceof Uint8Array) for (var e = 0; e < c.length; e++) {
+                        var k = c[e];
+                        if (k.length === b * d * 4) return k
+                    }
+                }
+                return c.length === b * d * 4 ? c : null
+            }
+            function l(a, b) {
+                if (a.data && a.width && a.height) {
+                    var d = h(a, a.width, a.height);
+                    if (null !== d) return m(d, a.width, a.height, b)
+                }
+                return null
+            }
+            function m(a, b, d, c) {
+                for (var f = new Int32Array(b * d), e = new Uint8ClampedArray(b * d), k = 0; k < d; k++) for (var v = 0; v < b; v++) {
+                    var r = 4 * (k * b + v);
+                    f[k * b + v] = (255 * (4 * c * a[r] + 7 * c * a[r + 1] + c * a[r + 2]) / 32 | 0) + (1 << 8);
+                    e[k * b + v] = (a[r] + a[r + 1] + a[r + 2]) / 3 | 0
+                }
+                return {
+                    data: f,
+                    luminance: e,
+                    width: b,
+                    height: d
+                }
+            }
+            function n(a, b, d) {
+                a.init(b, d);
+                for (var c = 0; c < b; c++) for (var f = 0; f < d; f++) a.set(c, f, !1)
+            }
+            function p(a) {
+                this.width = a;
+                this.height = a;
+                this.data = new Uint8ClampedArray(a * a);
+                this.last = -1;
+                this.sum = 0
+            }
+            function q(a, b) {
+                if (a.length !== b.length) return !1;
+                for (var d = 0; d < a.length; d++) if (a[d] !== b[d]) return !1;
+                return !0
+            }
+            function t(a, b) {
+                this.height = a;
+                this.width = b;
+                this.row = new Array(a);
+                for (var d = 0; d < a; d++) this.row[d] = new Uint8ClampedArray(Math.floor((b + 7) / 8));
+                this.dataWidth = Math.floor((b + 7) / 8);
+                this.clear()
+            }
+            function u(a, b, d, c, f) {
+                var e = null;
+                e = a.get(b, d) ? "#000" : "#FFF";
+                c.fillStyle = e;
+                c.fillRect(b, d, 1, 1)
+            }
+            function x(a, b) {
+                for (var d = new y(b), c = 0; c < b; c++) {
+                    for (var f = 0; f < b; f++) {
+                        var e = 0;
+                        if (d.get(c, f)) e = 1;
+                        u(d, c, f, a, e)
+                    }
+                }
+            }
+            function z(a) {
+                this.x = a[0];
+                this.y = a[1]
+            }
+            function A(a) {
+                this.x = a[0];
+                this.y = a[1];
+                this.count = 1
+            }
+            function B(a, b, d) {
+                if (b < a.minDimension || d < a.minDimension) throw "Width and height must be at least " + a.minDimension;
+                a.width = b;
+                a.height = d;
+                a.items = new Array(a.width);
+                for (var c = 0; c < a.width; c++) {
+                    a.items[c] = new Array(a.height);
+                    for (var f = 0; f < a.height; f++) a.items[c][f] = null
+                }
+            }
+            function C(a, b, d) {
+                this.bits = a;
+                this.points = b;
+                this.version = d
+            }
+            function D(a) {
+                var b = Object.getOwnPropertyNames(a);
+                return Object.getPrototypeOf(a).hasOwnProperty("length") && !b.some(function(d) {
+                    return /^\d+$/.test(d)
+                })
+            }
+            function E(a, b) {
+                var d = {
+                    alpha: 1,
+                    beta: .7,
+                    gamma: 20,
+                    lambda: 0,
+                    sigma: 0,
+                    minDimension: 10
+                };
+                if (D(a)) {
+                    for (var c in a) d[c] = a[c];
+                    a = d
+                } else a = d;
+                b = b || {};
+                var f = l(b, a.lambda),
+                    e = new F(f, a);
+                return G(e)
+            }
+            function F(a, b) {
+                this.data = a.data;
+                this.luminance = a.luminance;
+                this.width = a.width;
+                this.height = a.height;
+                this.options = b
+            }
+            function G(a) {
+                for (var b = a.width, d = a.height, c = new Int32Array(b * d), f = new Uint8ClampedArray(b * d), e = 0; e < d; e++) for (var k = 0; k < b; k++) {
+                    var v = e * b + k,
+                        r = a.luminance[v],
+                        s = r + a.data[v],
+                        w = 0;
+                    s < a.options.gamma && (w = 1);
+                    c[v] = s;
+                    f[v] = w
+                }
+                a.data = c;
+                a.threshold = f;
+                return a
+            }
+            function H(a, b) {
+                if (a && a.resultPoints && a.resultPoints.length) {
+                    var d = new Image;
+                    d.onload = function() {
+                        var c = document.createElement("canvas"),
+                            f = c.getContext("2d");
+                        c.width = d.width;
+                        c.height = d.height;
+                        f.drawImage(d, 0, 0);
+                        if (a.resultPoints.length) {
+                            for (var e = a.resultPoints, k = 0; k < e.length; k++) {
+                                var v = e[k];
+                                f.beginPath();
+                                f.lineWidth = 2;
+                                f.strokeStyle = "red";
+                                f.arc(v.x, v.y, 4, 0, 2 * Math.PI);
+                                f.stroke()
+                            }
+                            f.lineWidth = 3;
+                            f.strokeStyle = "red";
+                            f.moveTo(e[0].x, e[0].y);
+                            f.lineTo(e[1].x, e[1].y);
+                            f.lineTo(e[2].x, e[2].y);
+                            f.lineTo(e[0].x, e[0].y);
+                            f.stroke()
+                        }
+                        "function" === typeof b && b(c)
+                    };
+                    d.src = a.canvas.toDataURL()
+                }
+            }
+            function I(a) {
+                var b = J(a);
+                if (null === b) return null;
+                var d = b.points,
+                    c = new K(a.luminance, a.width, a.height);
+                try {
+                    var f = 1;
+                    if (b.version >= 7) {
+                        var e = J(a, b.version);
+                        if (null === e) return null;
+                        f = e.alignmentPatternCenters
+                    }
+                    var k = M(a.threshold, d[0], d[1], d[2], b.dimension, c);
+                    if (null === k) return null;
+                    b = new C(k, d, b.version);
+                    var v = P(b);
+                    if (null === v) return null;
+                    return {
+                        data: v,
+                        chunks: N(v),
+                        location: {
+                            topRightCorner: d[0],
+                            bottomRightCorner: d[1],
+                            bottomLeftCorner: d[2],
+                            topLeftCorner: M(a.threshold, d[0], d[1], d[2], b.dimension, c).topLeft
+                        }
+                    }
+                } catch (r) {
+                    return null
+                }
+            }
+            function J(a, b) {
+                var d = 0,
+                    c = 0;
+                b = b || 0;
+                var f = a.width,
+                    e = a.height;
+                f < e && (e = f);
+                e = Math.floor(e / 2);
+                for (var k = 0; k < e; k++) if (b = L(a.luminance, a.width, a.height, k, k, f - k, e - k), null !== b) {
+                    c = b.width;
+                    d = b.version;
+                    break
+                }
+                return null === b ? null : {
+                    width: c,
+                    version: d,
+                    points: b.points,
+                    alignmentPatternCenters: b.alignmentPatternCenters
+                }
+            }
+            function K(a, b, d) {
+                this.image = a;
+                this.width = b;
+                this.height = d
+            }
+            function L(a, b, d, c, f, e, k) {
+                function v(a, b, d, c) {
+                    var f = c[0] - b[0],
+                        e = c[1] - b[1],
+                        k = a[0] - b[0],
+                        v = a[1] - b[1];
+                    return f * v - e * k
+                }
+                function r(a) {
+                    a.sort(function(a, b) {
+                        return a.x - b.x
+                    });
+                    var b = a[0],
+                        d = a[1];
+                    b.y > d.y && (b = a[1], d = a[0]);
+                    var c = [a[2]];
+                    (v(b, d, 0, c[0]) < 0 ? c.push(d, b) : c.push(b, d)).push(c.shift());
+                    return c
+                }
+                function s(a, b, d) {
+                    var c = d;
+                    for (c += d; c < b - d; c += d) a.push(c);
+                    if (0 === a.length) throw "No pattern found";
+                    return a
+                }
+                var w = new Array(0),
+                    O = new Array(0);
+                for (d = 0; d < e; d++) {
+                    w[d] = new A([0, 0]);
+                    for (f = 0; f < k; f++) {
+                        var P = a[(f + c) * b + (d + f)];
+                        if (P < 128) {
+                            if (0 === w[d].count) w[d].x = d + f, w[d].y = f;
+                            w[d].count++
+                        } else {
+                            if (w[d].count > 0) {
+                                if (w[d].count < 2) {
+                                    w[d].count = 0;
+                                    continue
+                                }
+                                O.push(w[d]);
+                                w[d] = new A([0, 0])
+                            }
+                        }
+                    }
+                }
+                for (d = 0; d < O.length; d++) {
+                    var S = O[d];
+                    S.x = Math.floor(S.x / S.count);
+                    if (S.count < 5) {
+                        O.splice(d, 1);
+                        d--;
+                        continue
+                    }
+                    S.count /= 7
+                }
+                O.length > 2 && (O = r(O));
+                if (O.length < 3) return null;
+                d = O[0].x - O[2].x;
+                d = d * d;
+                c = O[0].y - O[2].y;
+                c = Math.sqrt(d + c * c) / 7;
+                var X = Math.round(c),
+                    Y = 21 + 4 * (X - 1);
+                if (7 > X) return null;
+                if (1 > X || 20 < X) return null;
+                f = new Array(0);
+                f = s(f, Y, X);
+                return {
+                    width: Y,
+                    points: O,
+                    version: X,
+                    alignmentPatternCenters: f
+                }
+            }
+            function M(a, b, d, c, f, e) {
+                var k = b.x - c.x + d.x,
+                    v = b.y - c.y + d.y;
+                f = new t(f, f);
+                b = O(b.x, b.y, c.x, c.y, f, e);
+                d = O(d.x, d.y, c.x, c.y, f, e);
+                c = O(k, v, c.x, c.y, f, e);
+                return {
+                    bits: f,
+                    topLeft: b,
+                    topRight: d,
+                    bottomLeft: c
+                }
+            }
+            function O(a, b, d, c, f, e) {
+                for (var k = Math.abs(a - d), v = Math.abs(b - c), r = k, s = v, w = a, O = b, P = 1, Q = 1; r-- >= 0;) w += P;
+                for (; s-- >= 0;) O += Q;
+                r = Math.round(k / (f.width - 1));
+                s = Math.round(v / (f.height - 1));
+                for (var T = 0; T < f.width; T++) for (var U = 0; U < f.height; U++) {
+                    var V = new z([a + T * r, b + U * s]);
+                    e.get(V.x, V.y) && f.set(T, U)
+                }
+                return new z([w, O])
+            }
+            function P(a) {
+                var b = Q(a.bits, a.version),
+                    d = 8 * b.length;
+                b = new R(b, d);
+                b.totalCodewords = d;
+                return b.decode()
+            }
+            function Q(a, b) {
+                var d = T[b],
+                    c = d.totalCodewords,
+                    f = d.eccCodewords,
+                    e = d.rsBlocks;
+                d = new U(a, d.dimension);
+                for (var k = 0, v = e.length; k < v; k++) {
+                    var r = e[k];
+                    for (var s = 0; s < r.length; s++) {
+                        var w = r[s];
+                        d.add(w.row, w.column, w.count)
+                    }
+                }
+                k = new V(d);
+                a = new W(k, c, f, d.size);
+                return a.correct()
+            }
+            function R(a, b) {
+                this.buffer = new Uint8ClampedArray(a);
+                this.length = b;
+                this.byteOffset = 0;
+                this.bitOffset = 0
+            }
+            function T(a) {
+                return 1 > a || a > 40 ? null : Y[a]
+            }
+            function U(a, b) {
+                this.bits = a;
+                this.dimension = b;
+                this.mapping = [];
+                for (var d = 0; d < b; d++) {
+                    this.mapping[d] = [];
+                    for (var c = 0; c < b; c++) this.mapping[d][c] = {
+                        value: null,
+                        read: !1
+                    }
+                }
+                this.set   (6, 8, !0, "format");
+                this.set(8, 6, !0, "format");
+                if (b >= 7) {
+                    this.set(b - 8, 8, !0, "version");
+                    this.set(8, b - 8, !0, "version")
+                }
+                this.set(b - 1, 8, !0, "alignment");
+                this.set(8, b - 1, !0, "alignment");
+                this.set(6, 6, !0, "finder");
+                this.set(b - 7, 6, !0, "finder");
+                this.set(6, b - 7, !0, "finder")
+            }
+            function V(a) {
+                var b = [];
+                a.reset();
+                for (var d = 0; d < a.size; d++) b.push(a.next());
+                return b
+            }
+            function W(a, b, d, c) {
+                var f = new X(d);
+                this.numECCodeWords = d;
+                this.totalCorreccted = 0;
+                this.rsBlocks = new Array(0);
+                this.totalRSBlocks = 0;
+                for (var e = 0; e < c; e++) {
+                    var k = a[e];
+                    if (0 < k.length) {
+                        var v = new Array(k.length);
+                        for (d = 0; d < k.length; d++) v[d] = k[d];
+                        this.rsBlocks.push(f.decode(v));
+                        this.totalRSBlocks++;
+                        this.totalCorreccted += f.totalErrorCorrected
+                    }
+                }
+                this.totalCodewords = b;
+                this.blocks = a
+            }
+            function X(a) {
+                this.gf = new Z(285, 256);
+                this.numECCodeWords = a;
+                this.el = [0];
+                for (a = 0; a < this.numECCodeWords; a++) this.el[a] = 0;
+                this.el[this.numECCodeWords] = 1
+            }
+            function Z(a, b) {
+                this.primitive = a;
+                this.size = b;
+                this.exp = new Array(b);
+                this.log = new Array(b);
+                for (a = 0; a < b; a++) {
+                    this.exp[a] = 0;
+                    this.log[a] = 0
+                }
+                for (a = 1; a < b; a++) {
+                    this.exp[a] = this.exp[a - 1] << 1;
+                    if (this.exp[a] >= b) this.exp[a] ^= this.primitive
+                }
+                for (a = 0; a < b; a++) this.log[this.exp[a]] = a
+            }
+            function $(a, b) {
+                if (a.length !== b.length) throw "Error: Lengths differ!";
+                for (var d = new Array(a.length), c = 0; c < a.length; c++) d[c] = a[c] ^ b[c];
+                return d
+            }
+            function _(a, b) {
+                this.data = a;
+                this.num = b;
+                this.pos = 0
+            }
+            function aa(a, b) {
+                this.data = a;
+                this.size = b;
+                this.bitOffset = 0
+            }
+            function ba(a) {
+                var b = Math.floor(a.num / 8),
+                    d = a.num % 8;
+                for (a = 0; a < b; a++) this.data[a] = 255 & a.data[a];
+                this.data[b] = 255 & (a.data[b] << d)
+            }
+            function ca(a) {
+                this.data = a;
+                this.length = a.length
+            }
+            function da(a, b) {
+                if (a && a.length && b) {
+                    var d = new Array(a.length);
+                    if (b.length) for (var c = 0; c < a.length; c++) d[c] = a[c][b[c]];
+                    else for (c = 0; c < a.length; c++) d[c] = a[c][0];
+                    return d
+                }
+                return null
+            }
+            function ea(a) {
+                return a.resultPoints[1].x - a.resultPoints[0].x
+            }
+            function fa(a, b, d, c, f) {
+                a.data = [];
+                a.width = b;
+                a.height = d;
+                a.bitOffset = c;
+                a.byteOffset = f
+            }
+            var ga = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4],
+                N = function(a) {
+                    a = new R(a, 8 * a.length);
+                    for (var b = [], d = null, c = 0, f = !1, e = null, k = null; a.available() >= 4;) {
+                        var v = a.read(4);
+                        f = !1;
+                        switch (v) {
+                            case 1:
+                                d = "Numeric";
+                                e = [10, 12, 14];
+                                break;
+                            case 2:
+                                d = "Alphanumeric";
+                                e = [9, 11, 13];
+                                break;
+                            case 4:
+                                d = "Byte";
+                                e = [8, 16, 16];
+                                break;
+                            case 8:
+                                d = "Kanji";
+                                e = [8, 10, 12];
+                                break;
+                            case 3:
+                            case 5:
+                            case 6:
+                            case 7:
+                            case 9:
+                            case 10:
+                            case 11:
+                            case 12:
+                            case 13:
+                            case 14:
+                            case 15:
+                                f = !0;
+                                break;
+                            default:
+                                f = !0
+                        }
+                        if (f) break;
+                        k = a.read(e[0]);
+                        v = new Uint8ClampedArray(k);
+                        switch (d) {
+                            case "Numeric":
+                                for (e = 0; e < k / 3; e++) {
+                                    v = a.read(10);
+                                    if (v >= 100) {
+                                        var r = Math.floor(v / 100);
+                                        b.push(r.toString());
+                                        v -= 100 * r
+                                    }
+                                    if (v >= 10) {
+                                        r = Math.floor(v / 10);
+                                        b.push(r.toString());
+                                        v -= 10 * r
+                                    }
+                                    b.push(v.toString())
+                                }
+                                k = v;
+                                break;
+                            case "Alphanumeric":
+                                for (e = 0; e < k / 2; e++) {
+                                    v = a.read(11);
+                                    b.push(ha[Math.floor(v / 45)]);
+                                    b.push(ha[v % 45])
+                                }
+                                0 < k % 2 && b.push(ha[a.read(6)]);
+                                break;
+                            case "Byte":
+                                for (e = 0; e < k; e++) b.push(String.fromCharCode(a.read(8)));
+                                break;
+                            case "Kanji":
+                                for (e = 0; e < k; e++) v = a.read(13), v = Math.floor(v / 192) << 8 | v % 192, v += v < 256 ? 33088 : 49472, b.push(String.fromCharCode(v))
+                        }
+                    }
+                    return b.join("")
+                },
+                ha = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:".split(""),
+                y = t;
+            y.prototype.get = function(a, b) {
+                var d = Math.floor(b / 8);
+                return 0 < (this.row[a][d] & 1 << (b % 8))
+            };
+            y.prototype.set = function(a, b, d) {
+                var c = Math.floor(b / 8);
+                d ? this.row[a][c] |= 1 << (b % 8) : this.row[a][c] &= ~(1 << (b % 8))
+            };
+            y.prototype.clear = function() {
+                for (var a = 0; a < this.height; a++) for (var b = 0; b < this.dataWidth; b++) this.row[a][b] = 0
+            };
+            var Y = {
+                1: {
+                    dimension: 21,
+                    totalCodewords: 26,
+                    eccCodewords: 10,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 1
+                        }]
+                    ]
+                },
+                2: {
+                    dimension: 25,
+                    totalCodewords: 44,
+                    eccCodewords: 16,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 1
+                        }]
+                    ]
+                },
+                3: {
+                    dimension: 29,
+                    totalCodewords: 78,
+                    eccCodewords: 26,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 1
+                        }]
+                    ]
+                },
+                4: {
+                    dimension: 33,
+                    totalCodewords: 126,
+                    eccCodewords: 36,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 1
+                        }]
+                    ]
+                },
+                5: {
+                    dimension: 37,
+                    totalCodewords: 162,
+                    eccCodewords: 48,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 1
+                        }]
+                    ]
+                },
+                6: {
+                    dimension: 41,
+                    totalCodewords: 206,
+                    eccCodewords: 64,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 1
+                        }]
+                    ]
+                },
+                7: {
+                    dimension: 45,
+                    totalCodewords: 244,
+                    eccCodewords: 72,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                8: {
+                    dimension: 49,
+                    totalCodewords: 290,
+                    eccCodewords: 86,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                9: {
+                    dimension: 53,
+                    totalCodewords: 340,
+                    eccCodewords: 100,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                10: {
+                    dimension: 57,
+                    totalCodewords: 400,
+                    eccCodewords: 116,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                11: {
+                    dimension: 61,
+                    totalCodewords: 468,
+                    eccCodewords: 130,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                12: {
+                    dimension: 65,
+                    totalCodewords: 546,
+                    eccCodewords: 150,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                13: {
+                    dimension: 69,
+                    totalCodewords: 620,
+                    eccCodewords: 176,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                14: {
+                    dimension: 73,
+                    totalCodewords: 714,
+                    eccCodewords: 200,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                15: {
+                    dimension: 77,
+                    totalCodewords: 816,
+                    eccCodewords: 230,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                16: {
+                    dimension: 81,
+                    totalCodewords: 909,
+                    eccCodewords: 260,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                17: {
+                    dimension: 85,
+                    totalCodewords: 1003,
+                    eccCodewords: 290,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                18: {
+                    dimension: 89,
+                    totalCodewords: 1118,
+                    eccCodewords: 330,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                19: {
+                    dimension: 93,
+                    totalCodewords: 1226,
+                    eccCodewords: 360,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                20: {
+                    dimension: 97,
+                    totalCodewords: 1374,
+                    eccCodewords: 400,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                21: {
+                    dimension: 101,
+                    totalCodewords: 1494,
+                    eccCodewords: 434,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                22: {
+                    dimension: 105,
+                    totalCodewords: 1632,
+                    eccCodewords: 476,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                23: {
+                    dimension: 109,
+                    totalCodewords: 1778,
+                    eccCodewords: 520,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                24: {
+                    dimension: 113,
+                    totalCodewords: 1936,
+                    eccCodewords: 568,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                25: {
+                    dimension: 117,
+                    totalCodewords: 2056,
+                    eccCodewords: 616,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                26: {
+                    dimension: 121,
+                    totalCodewords: 2236,
+                    eccCodewords: 666,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                27: {
+                    dimension: 125,
+                    totalCodewords: 2416,
+                    eccCodewords: 716,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                28: {
+                    dimension: 129,
+                    totalCodewords: 2608,
+                    eccCodewords: 782,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                29: {
+                    dimension: 133,
+                    totalCodewords: 2808,
+                    eccCodewords: 860,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                30: {
+                    dimension: 137,
+                    totalCodewords: 3024,
+                    eccCodewords: 914,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                31: {
+                    dimension: 141,
+                    totalCodewords: 3248,
+                    eccCodewords: 988,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                32: {
+                    dimension: 145,
+                    totalCodewords: 3488,
+                    eccCodewords: 1064,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                33: {
+                    dimension: 149,
+                    totalCodewords: 3736,
+                    eccCodewords: 1140,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                34: {
+                    dimension: 153,
+                    totalCodewords: 4000,
+                    eccCodewords: 1224,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                35: {
+                    dimension: 157,
+                    totalCodewords: 4272,
+                    eccCodewords: 1302,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                36: {
+                    dimension: 161,
+                    totalCodewords: 4560,
+                    eccCodewords: 1386,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                37: {
+                    dimension: 165,
+                    totalCodewords: 4864,
+                    eccCodewords: 1476,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                38: {
+                    dimension: 169,
+                    totalCodewords: 5120,
+                    eccCodewords: 1588,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                39: {
+                    dimension: 173,
+                    totalCodewords: 5432,
+                    eccCodewords: 1676,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                },
+                40: {
+                    dimension: 177,
+                    totalCodewords: 5744,
+                    eccCodewords: 1778,
+                    rsBlocks: [
+                        [{
+                            row: 0,
+                            column: 0,
+                            count: 2
+                        }]
+                    ]
+                }
+            };
+            R.prototype.read = function(a) {
+                if (a < 0 || 32 < a || a > this.available()) throw "Num bits must be between 0 and 32";
+                var b = this.buffer,
+                    d = this.byteOffset,
+                    c = this.bitOffset,
+                    f = 0;
+                this.bitOffset += a;
+                for (; 8 <= this.bitOffset;) f = f << 8 | 255 & b[d], d++, this.bitOffset -= 8;
+                f = f << this.bitOffset | b[d] >>> (8 - this.bitOffset);
+                f &= (1 << a) - 1;
+                this.byteOffset = d;
+                return f
+            };
+            R.prototype.available = function() {
+                return 8 * (this.buffer.length - this.byteOffset) - this.bitOffset
+            };
+            U.prototype.add = function(a, b, d) {
+                for (var c = 0; c < d; c++) if (null !== this.mapping[a][b].value) throw "symbole read twice";
+                this.mapping[a][b].value = !0;
+                this.mapping[a][b].read = !0
+            };
+            U.prototype.get = function(a, b) {
+                if (a < 0 || a >= this.dimension || b < 0 || b >= this.dimension) throw "Out of bounds";
+                if (null !== this.mapping[a][b].value) return this.mapping[a][b].value;
+                var d = !1;
+                this.mapping[a][b].read = !0;
+                return this.bits.get(a, b)
+            };
+            U.prototype.next = function() {
+                for (var a = 0; a < this.dimension; a++) for (var b = 0; b < this.dimension; b++) if (!this.mapping[a][b].read) return this.get(a, b) ? 1 : 0;
+                return 0
+            };
+            W.prototype.correct = function() {
+                for (var a = new Array(this.totalCodewords - this.numECCodeWords), b = 0, d = 0; d < this.totalRSBlocks; d++) {
+                    var c = this.rsBlocks[d].ecc;
+                    this.blocks[d] = $(this.blocks[d], c);
+                    for (var f = 0; f < this.blocks[d].length - this.numECCodeWords; f++) a[f + b] = this.blocks[d][f];
+                    b += this.blocks[d].length - this.numECCodeWords
+                }
+                return a
+            };
+            X.prototype.decode = function(a) {
+                var b = this.gf.get
+                    (this.el, a.length - this.numECCodeWords);
+                if (0 === b[0]) return {
+                    ecc: b,
+                    errorCorrected: !0
+                };
+                for (var d = this.gf.divide(a, this.el), c = new Array(this.numECCodeWords), f = 0; f < this.numECCodeWords; f++) c[f] = b[f];
+                return {
+                    ecc: c,
+                    errorCorrected: !0
+                }
+            };
+            Z.prototype.multiply = function(a, b) {
+                return 0 === a || 0 === b ? 0 : this.exp[this.log[a] + this.log[b] % (this.size - 1)]
+            };
+            Z.prototype.inverse = function(a) {
+                return this.exp[this.size - 1 - this.log[a]]
+            };
+            Z.prototype.divide = function(a, b) {
+                for (var d = new Array(a.length - b.length + 1), c = new Array(a.length), f = 0; f < a.length; f++) c[f] = a[f];
+                for (f = 0; f < a.length - b.length + 1; f++) {
+                    var e = this.inverse(b[0]);
+                    d[f] = this.multiply(c[f], e);
+                    for (var k = 0; k < b.length; k++) c[f + k] = c[f + k] ^ this.multiply(b[k], d[f])
+                }
+                return d
+            };
+            return function(a, b, d, c) {
+                return I(E(d, {
+                    data: a,
+                    width: b,
+                    height: d
+                }))
+            }
+        })();
+
+
+        // Image Converter
+        const imageUpload = document.getElementById('imageUpload');
+        const imagePreview = document.getElementById('imagePreview');
+        const outputFormat = document.getElementById('outputFormat');
+        const compressionQuality = document.getElementById('compressionQuality');
+        const qualityValueSpan = document.getElementById('qualityValue');
+        const originalSizeInfo = document.getElementById('originalSizeInfo');
+        const compressedSizeInfo = document.getElementById('compressedSizeInfo');
+
+        compressionQuality.addEventListener('input', () => {
+            qualityValueSpan.textContent = compressionQuality.value;
+        });
+
+        let uploadedFile = null;
+
+        function previewImage() {
+            const file = imageUpload.files[0];
+            uploadedFile = file;
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+
+                    // Get original image size
+                    const img = new Image();
+                    img.onload = function() {
+                        originalSizeInfo.textContent = `Original Size: ${formatBytes(file.size)}`;
+                        compressedSizeInfo.textContent = 'Compressed Size: N/A'; // Reset
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.style.display = 'none';
+                imagePreview.src = '#';
+                originalSizeInfo.textContent = 'Original Size: N/A';
+                compressedSizeInfo.textContent = 'Compressed Size: N/A';
+            }
+        }
+
+        async function convertAndDownloadImage() {
+            if (!uploadedFile) {
+                alert('Please upload an image first.');
+                return;
+            }
+
+            const format = outputFormat.value;
+            const quality = parseFloat(compressionQuality.value);
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const img = new Image();
+                img.onload = async function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    // Set canvas dimensions to image dimensions
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+
+                    ctx.drawImage(img, 0, 0);
+
+                    let mimeType;
+                    switch (format) {
+                        case 'jpeg':
+                            mimeType = 'image/jpeg';
+                            break;
+                        case 'png':
+                            mimeType = 'image/png';
+                            break;
+                        case 'webp':
+                            mimeType = 'image/webp';
+                            break;
+                        default:
+                            mimeType = 'image/jpeg';
+                    }
+
+                    // Convert to Blob with specified quality
+                    canvas.toBlob(function(blob) {
+                        if (blob) {
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = `converted_image.${format}`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(url); // Clean up
+
+                            compressedSizeInfo.textContent = `Compressed Size: ${formatBytes(blob.size)}`;
+                        } else {
+                            alert('Failed to convert image. Please try again.');
+                        }
+                    }, mimeType, quality);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(uploadedFile);
+        }
+
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+    </script>
+</body>
+</html>
