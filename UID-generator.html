@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UUID Generator</title>
+    <style>
+        /* General Styling */
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #FF6B6B, #4ECDC4); /* Full-color gradient */
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.15); /* Slightly transparent white */
+            backdrop-filter: blur(10px); /* Frosted glass effect */
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #FFD700; /* Gold */
+            margin-bottom: 25px;
+            font-size: 2em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* UUID Display */
+        #uuidDisplay {
+            background-color: rgba(0, 0, 0, 0.3);
+            color: #E0FFFF; /* Light Cyan */
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            font-size: 1.2em;
+            font-weight: bold;
+            word-break: break-all; /* Ensures long UUIDs wrap */
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        button {
+            background-color: #00BFFF; /* Deep Sky Blue */
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            background-color: #1E90FF; /* Dodger Blue */
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 15px;
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            #uuidDisplay {
+                font-size: 1em;
+                padding: 12px;
+            }
+
+            button {
+                width: 100%;
+                padding: 15px;
+                font-size: 1.1em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            #uuidDisplay {
+                font-size: 0.9em;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>UUID Generator</h1>
+        <div id="uuidDisplay">Click "Generate UUID" to get a new ID</div>
+        <div class="button-group">
+            <button id="generateBtn">Generate UUID</button>
+            <button id="copyBtn">Copy to Clipboard</button>
+        </div>
+    </div>
+
+    <script>
+        // Function to generate a UUID (version 4)
+        // Uses the Web Crypto API for better randomness, falls back to Math.random() if not available
+        function generateUUID() {
+            if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+                return crypto.randomUUID();
+            } else {
+                // Fallback for older browsers or environments without crypto.randomUUID
+                // This is a common and generally accepted way to generate UUIDs client-side
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    const r = (Math.random() * 16) | 0;
+                    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            }
+        }
+
+        const uuidDisplay = document.getElementById('uuidDisplay');
+        const generateBtn = document.getElementById('generateBtn');
+        const copyBtn = document.getElementById('copyBtn');
+
+        // Generate a UUID on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            uuidDisplay.textContent = generateUUID();
+        });
+
+        // Event listener for Generate button
+        generateBtn.addEventListener('click', () => {
+            uuidDisplay.textContent = generateUUID();
+        });
+
+        // Event listener for Copy button
+        copyBtn.addEventListener('click', () => {
+            const uuidText = uuidDisplay.textContent;
+            navigator.clipboard.writeText(uuidText)
+                .then(() => {
+                    alert('UUID copied to clipboard!');
+                })
+                .catch(err => {
+                    console.error('Failed to copy UUID: ', err);
+                    alert('Failed to copy UUID. Please copy manually.');
+                });
+        });
+    </script>
+</body>
+</html>
