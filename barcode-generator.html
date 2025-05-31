@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Barcode Generator</title>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 500px;
+      background: #ffffff10;
+      border-radius: 15px;
+      padding: 20px;
+      margin: auto;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      font-size: 1.8em;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"],
+    select,
+    button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 10px;
+      font-size: 1em;
+    }
+
+    input[type="text"] {
+      background: #fff;
+      color: #333;
+    }
+
+    select {
+      background: #fff;
+      color: #333;
+    }
+
+    button {
+      background: #ff4081;
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #e91e63;
+    }
+
+    #barcode {
+      margin-top: 20px;
+      background: #fff;
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    @media screen and (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+
+      h1 {
+        font-size: 1.4em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Barcode Generator Tool</h1>
+    <input type="text" id="barcodeData" placeholder="Enter text or number" />
+    <select id="barcodeFormat">
+      <option value="CODE128">CODE128</option>
+      <option value="EAN13">EAN-13</option>
+      <option value="UPC">UPC</option>
+      <option value="CODE39">CODE39</option>
+      <option value="ITF">ITF</option>
+    </select>
+    <button onclick="generateBarcode()">Generate Barcode</button>
+    <button onclick="downloadBarcode()">Download Barcode</button>
+
+    <div id="barcode">
+      <svg id="barcodeSvg"></svg>
+    </div>
+  </div>
+
+  <script>
+    function generateBarcode() {
+      const data = document.getElementById("barcodeData").value;
+      const format = document.getElementById("barcodeFormat").value;
+      if (!data) {
+        alert("Please enter some data to encode.");
+        return;
+      }
+
+      JsBarcode("#barcodeSvg", data, {
+        format: format,
+        lineColor: "#000",
+        background: "#fff",
+        width: 2,
+        height: 100,
+        displayValue: true
+      });
+    }
+
+    function downloadBarcode() {
+      const svg = document.getElementById("barcodeSvg");
+      const serializer = new XMLSerializer();
+      const source = serializer.serializeToString(svg);
+      const blob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "barcode.svg";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>
