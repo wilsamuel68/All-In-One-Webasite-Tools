@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Time Zone & Image Converter</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom right, #6a11cb, #2575fc);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 800px;
+      background: white;
+      color: #333;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 40px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    select, input[type="datetime-local"], input[type="file"], button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    button {
+      background: #2575fc;
+      color: white;
+      border: none;
+      margin-top: 15px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1a5ad9;
+    }
+    .preview {
+      margin-top: 15px;
+      text-align: center;
+    }
+    .preview img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Time Zone & Image Converter Tool</h1>
+
+  <!-- Time Zone Converter -->
+  <div class="container">
+    <h2>Time Zone Converter</h2>
+    <label for="datetime">Select Date & Time:</label>
+    <input type="datetime-local" id="datetime"/>
+
+    <label for="fromTZ">From Time Zone:</label>
+    <select id="fromTZ"></select>
+
+    <label for="toTZ">To Time Zone:</label>
+    <select id="toTZ"></select>
+
+    <button onclick="convertTime()">Convert Time</button>
+
+    <p id="convertedTime" style="font-weight: bold; margin-top: 10px;"></p>
+  </div>
+
+  <!-- Image Converter -->
+  <div class="container">
+    <h2>Image Format Converter</h2>
+    <input type="file" id="imageInput" accept="image/*">
+    
+    <label for="format">Convert To Format:</label>
+    <select id="format">
+      <option value="image/png">PNG</option>
+      <option value="image/jpeg">JPEG</option>
+      <option value="image/webp">WEBP</option>
+    </select>
+    
+    <button onclick="convertImage()">Convert & Download</button>
+
+    <div class="preview" id="imagePreviewContainer">
+      <h3>Preview:</h3>
+      <canvas id="canvas" style="max-width: 100%; display:none;"></canvas>
+      <a id="downloadLink" style="display:none; margin-top: 10px; display: inline-block;">Download Image</a>
+    </div>
+  </div>
+
+  <script>
+    // Populate time zones
+    const timeZones = Intl.supportedValuesOf('timeZone');
+    const fromTZ = document.getElementById('fromTZ');
+    const toTZ = document.getElementById('toTZ');
+    timeZones.forEach(tz => {
+      const option1 = document.createElement('option');
+      const option2 = document.createElement('option');
+      option1.value = option2.value = tz;
+      option1.textContent = option2.textContent = tz;
+      fromTZ.appendChild(option1);
+      toTZ.appendChild(option2);
+    });
+
+    function convertTime() {
+      const datetime = document.getElementById('datetime').value;
+      const from = fromTZ.value;
+      const to = toTZ.value;
+      if (!datetime || !from || !to) return alert("Please fill all fields.");
+
+      const date = new Date(datetime);
+      const fromDate = new Date(date.toLocaleString("en-US", { timeZone: from }));
+      const toDate = new Date(fromDate.toLocaleString("en-US", { timeZone: to }));
+
+      document.getElementById('convertedTime').innerText =
+        `Converted Time (${to}): ${toDate.toLocaleString()}`;
+    }
+
+    function convertImage() {
+      const input = document.getElementById('imageInput');
+      const format = document.getElementById('format').value;
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      const previewContainer = document.getElementById('imagePreviewContainer');
+      const downloadLink = document.getElementById('downloadLink');
+
+      if (!input.files.length) {
+        alert("Please upload an image.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const img = new Image();
+        img.onload = function () {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+          canvas.style.display = 'block';
+
+          canvas.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            downloadLink.href = url;
+            downloadLink.download = `converted-image.${format.split('/')[1]}`;
+            downloadLink.innerText = "Download Converted Image";
+            downloadLink.style.display = 'inline-block';
+          }, format);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  </script>
+
+</body>
+</html>
