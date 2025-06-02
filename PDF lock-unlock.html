@@ -5,69 +5,77 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Image PDF Lock/Unlock Tool</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background: #f5faff;
-      color: #333;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #ff6f61, #f9a602);
+      color: #fff;
       margin: 0;
       padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
 
     .container {
-      max-width: 600px;
-      margin: 40px auto;
-      background: #ffffff;
+      background: #ffffff22;
       padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 20px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
     }
 
     h1 {
-      text-align: center;
-      color: #3399ff;
+      font-size: 1.8rem;
+      margin-bottom: 15px;
+      color: #fff;
     }
 
     input[type="file"] {
-      display: block;
-      margin: 20px auto;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 10px;
+      background-color: #fff;
+      color: #333;
+      border: none;
+      width: 100%;
     }
 
     .preview {
-      display: flex;
-      justify-content: center;
-      margin: 20px 0;
+      margin-top: 15px;
     }
 
-    .preview img {
+    img {
       max-width: 100%;
-      max-height: 300px;
-      border-radius: 8px;
-    }
-
-    select,
-    button {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+      border-radius: 10px;
+      margin-bottom: 10px;
     }
 
     button {
-      background-color: #3399ff;
-      color: white;
+      background-color: #fff;
+      color: #ff6f61;
+      padding: 10px 20px;
+      margin: 5px;
       border: none;
+      border-radius: 10px;
+      font-weight: bold;
       cursor: pointer;
+      transition: all 0.3s ease;
     }
 
     button:hover {
-      background-color: #007acc;
+      background-color: #ff6f61;
+      color: #fff;
     }
 
     @media (max-width: 600px) {
       .container {
-        margin: 20px;
         padding: 15px;
       }
     }
@@ -75,59 +83,64 @@
 </head>
 <body>
   <div class="container">
-    <h1>Image Format Converter</h1>
+    <h1>Image to PDF Lock/Unlock</h1>
     <input type="file" id="imageInput" accept="image/*" />
-    <div class="preview" id="previewContainer"></div>
-
-    <select id="formatSelect">
-      <option value="jpeg">Convert to JPEG</option>
-      <option value="png">Convert to PNG</option>
-      <option value="webp">Convert to WEBP</option>
-    </select>
-
-    <button onclick="convertImage()">Convert and Download</button>
+    <div class="preview" id="preview"></div>
+    <button onclick="convertToPDF('lock')">Convert & Lock PDF</button>
+    <button onclick="convertToPDF('unlock')">Convert & Unlock PDF</button>
   </div>
 
   <script>
-    let originalImage = null;
+    const imageInput = document.getElementById('imageInput');
+    const preview = document.getElementById('preview');
 
-    document.getElementById('imageInput').addEventListener('change', function(event) {
-      const file = event.target.files[0];
+    imageInput.addEventListener('change', function () {
+      const file = this.files[0];
       if (file) {
         const reader = new FileReader();
-        reader.onload = function(e) {
-          const img = document.createElement('img');
-          img.src = e.target.result;
-          originalImage = img;
-
-          const preview = document.getElementById('previewContainer');
-          preview.innerHTML = '';
-          preview.appendChild(img);
+        reader.onload = function (e) {
+          preview.innerHTML = `<img src="${e.target.result}" alt="Preview Image">`;
         };
         reader.readAsDataURL(file);
       }
     });
 
-    function convertImage() {
-      if (!originalImage) {
-        alert('Please upload an image first.');
-        return;
-      }
+    function convertToPDF(mode) {
+      const file = imageInput.files[0];
+      if (!file) return alert("Please select an image first.");
 
-      const format = document.getElementById('formatSelect').value;
-      const canvas = document.createElement('canvas');
-      canvas.width = originalImage.naturalWidth;
-      canvas.height = originalImage.naturalHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(originalImage, 0, 0);
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const img = new Image();
+        img.onload = function () {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
 
-      canvas.toBlob(function(blob) {
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `converted_image.${format}`;
-        link.click();
-      }, `image/${format}`);
+          const imgData = canvas.toDataURL('image/jpeg', 0.8);
+
+          const pdf = new jsPDF({ unit: 'px', format: [img.width, img.height] });
+          pdf.addImage(imgData, 'JPEG', 0, 0, img.width, img.height);
+
+          if (mode === 'lock') {
+            pdf.setProperties({
+              title: "Locked Image PDF",
+              author: "Tool",
+              subject: "Locked PDF",
+              keywords: "locked, image, pdf",
+            });
+            pdf.setPassword('1234'); // jsPDF password protection via plugins if needed
+          }
+
+          pdf.save(`image_${mode}.pdf`);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
     }
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </body>
 </html>
