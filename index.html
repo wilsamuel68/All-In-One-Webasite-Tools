@@ -1,6 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image PDF Merger & Splitter</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #ff758c, #ff7eb3);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      background: #fff;
+      color: #333;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      max-width: 500px;
+      width: 100%;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #ff4081;
+    }
+    input[type="file"] {
+      display: block;
+      margin: 0 auto 20px auto;
+    }
+    .preview {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .preview img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+    button {
+      background: #ff4081;
+      color: #fff;
+      padding: 12px;
+      width: 100%;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      background: #e91e63;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Image PDF Merger & Splitter</h2>
+    <input type="file" id="imageInput" accept="image/*">
+    <div class="preview" id="previewContainer"></div>
+    <button onclick="convertToPDF()">Convert to PDF</button>
+    <button onclick="splitPDF()">Split PDF (One Page per Image)</button>
+    <a id="downloadLink" style="display: none;" download="output.pdf">Download PDF</a>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const { jsPDF } = window.jspdf;
+    let uploadedImage = null;
+
+    document.getElementById('imageInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          uploadedImage = event.target.result;
+          const img = document.createElement('img');
+          img.src = uploadedImage;
+          document.getElementById('previewContainer').innerHTML = '';
+          document.getElementById('previewContainer').appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function convertToPDF() {
+      if (!uploadedImage) return alert('Please upload an image first.');
+      const pdf = new jsPDF();
+      const img = new Image();
+      img.onload = function () {
+        const imgProps = pdf.getImageProperties(uploadedImage);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        pdf.addImage(uploadedImage, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+        const blob = pdf.output('blob');
+        const url = URL.createObjectURL(blob);
+        const link = document.getElementById('downloadLink');
+        link.href = url;
+        link.style.display = 'block';
+        link.textContent = 'Download PDF';
+      };
+      img.src = uploadedImage;
+    }
+
+    function splitPDF() {
+      if (!uploadedImage) return alert('Please upload an image first.');
+      const pdf = new jsPDF();
+      const img = new Image();
+      img.onload = function () {
+        const imgProps = pdf.getImageProperties(uploadedImage);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        pdf.addImage(uploadedImage, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+        // Create new page for demo
+        pdf.addPage();
+        pdf.addImage(uploadedImage, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+
+        const blob = pdf.output('blob');
+        const url = URL.createObjectURL(blob);
+        const link = document.getElementById('downloadLink');
+        link.href = url;
+        link.style.display = 'block';
+        link.textContent = 'Download Split PDF';
+      };
+      img.src = uploadedImage;
+    }
+  </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ALLINONE website TOOLS HUB - Your Daily Tools</title>
@@ -506,13 +646,13 @@
                             <div class="tool-card-icon">🔁</div>
                             <h3>Document Converter</h3>
                             <p>Convert documents between various formats (DOCX, PDF, TXT).</p>
-                            <a href="document-comverter.html" class="btn-use-tool">Use Tool</a>
+                            <a href="document-converter.html" class="btn-use-tool">Use Tool</a>
                         </div>
                         <div class="tool-card" data-keywords="pdf lock unlock encrypt decrypt password protect secure document">
                             <div class="tool-card-icon">🔒🔓</div>
                             <h3>PDF Lock/Unlock</h3>
                             <p>Secure your PDFs with passwords or remove protection.</p>
-                            <a href="pdf-lock/unlock.html" class="btn-use-tool">Use Tool</a>
+                            <a href="PDF lock-unlock.html" class="btn-use-tool">Use Tool</a>
                         </div>
                         <div class="tool-card" data-keywords="esign pdf digital signature sign document electronically">
                             <div class="tool-card-icon">✒️</div>
