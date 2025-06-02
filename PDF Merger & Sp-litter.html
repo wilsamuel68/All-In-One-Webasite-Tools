@@ -1,557 +1,140 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Converter - Your Multi-Tool Website</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        /* General Styling */
-        :root {
-            --light-blue: #ADD8E6; /* Light Blue */
-            --white-gray: #F5F5F5; /* White Gray */
-            --dark-blue: #6A8696; /* Slightly darker blue for accents */
-            --text-color: #333;
-            --border-color: #ddd;
-            --button-hover: #9ACEDF;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--white-gray);
-            color: var(--text-color);
-            line-height: 1.6;
-        }
-
-        .header {
-            background-color: var(--light-blue);
-            color: white;
-            padding: 1rem 0;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 1.8rem;
-        }
-
-        .header nav {
-            margin-top: 10px;
-        }
-
-        .header nav a {
-            color: white;
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            margin: 0 5px;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-        }
-
-        .header nav a:hover,
-        .header nav a.active {
-            background-color: var(--dark-blue);
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 2rem auto;
-            padding: 1rem;
-        }
-
-        .tool-card {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        .tool-card h2 {
-            color: var(--light-blue);
-            margin-top: 0;
-            font-size: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .tool-card h2 .fas {
-            margin-right: 10px;
-        }
-
-        .tool-card p {
-            margin-bottom: 1.5rem;
-            color: #666;
-        }
-
-        /* Upload Area */
-        .upload-area {
-            margin-bottom: 1.5rem;
-            border: 2px dashed var(--border-color);
-            padding: 2rem;
-            border-radius: 8px;
-            background-color: var(--white-gray);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 150px; /* Ensure some height for drag and drop feel */
-        }
-
-        .upload-button {
-            background-color: var(--light-blue);
-            color: white;
-            padding: 12px 25px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            transition: background-color 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .upload-button:hover {
-            background-color: var(--dark-blue);
-        }
-
-        .file-name {
-            margin-top: 10px;
-            font-style: italic;
-            color: #555;
-        }
-
-        /* Preview Area */
-        .preview-area {
-            margin-top: 2rem;
-            border: 1px solid var(--border-color);
-            padding: 1rem;
-            border-radius: 8px;
-            background-color: #f9f9f9;
-        }
-
-        .preview-area h3 {
-            color: var(--dark-blue);
-            margin-top: 0;
-            font-size: 1.4rem;
-        }
-
-        #imagePreview {
-            max-width: 100%;
-            height: auto;
-            display: block;
-            margin: 1rem auto;
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-        }
-
-        /* Conversion Options */
-        .conversion-options {
-            margin-top: 2rem;
-            border: 1px solid var(--border-color);
-            padding: 1.5rem;
-            border-radius: 8px;
-            background-color: #f9f9f9;
-        }
-
-        .conversion-options h3 {
-            color: var(--dark-blue);
-            margin-top: 0;
-            font-size: 1.4rem;
-        }
-
-        .option-group {
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap; /* For mobile responsiveness */
-        }
-
-        .option-group label {
-            font-weight: bold;
-            color: #555;
-        }
-
-        .option-group select,
-        .option-group input[type="range"] {
-            padding: 8px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 1rem;
-            outline: none;
-            transition: border-color 0.3s ease;
-            flex-grow: 1; /* Allow them to take more space */
-            max-width: 250px; /* Limit max width */
-        }
-
-        .option-group select:focus,
-        .option-group input[type="range"]:focus {
-            border-color: var(--light-blue);
-        }
-
-        #qualityValue {
-            font-weight: bold;
-            color: var(--dark-blue);
-            min-width: 45px; /* Ensure it doesn't jump */
-            text-align: right;
-        }
-
-        .action-button {
-            background-color: var(--light-blue);
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            margin-top: 1.5rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none; /* For download link */
-        }
-
-        .action-button:hover {
-            background-color: var(--dark-blue);
-            transform: translateY(-2px);
-        }
-
-        .download-link {
-            background-color: #28a745; /* Green for download */
-        }
-
-        .download-link:hover {
-            background-color: #218838;
-        }
-
-        /* Message Area */
-        .message-area {
-            margin-top: 1.5rem;
-            padding: 1rem;
-            border-radius: 5px;
-            background-color: #ffeeba; /* Light yellow for info/warnings */
-            color: #856404; /* Dark yellow text */
-            border: 1px solid #ffeeba;
-            display: none; /* Hidden by default */
-        }
-
-        .message-area.error {
-            background-color: #f8d7da; /* Light red for errors */
-            color: #721c24; /* Dark red text */
-            border-color: #f5c6cb;
-        }
-
-        .message-area.success {
-            background-color: #d4edda; /* Light green for success */
-            color: #155724; /* Dark green text */
-            border-color: #c3e6cb;
-        }
-
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 1.5rem;
-            margin-top: 3rem;
-            background-color: var(--light-blue);
-            color: white;
-            font-size: 0.9rem;
-        }
-
-        /* Mobile Responsiveness */
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 1.5rem;
-            }
-
-            .header nav a {
-                padding: 0.4rem 0.8rem;
-                margin: 0 3px;
-                font-size: 0.9rem;
-            }
-
-            .container {
-                margin: 1rem auto;
-                padding: 0.5rem;
-            }
-
-            .tool-card {
-                padding: 1.5rem;
-            }
-
-            .tool-card h2 {
-                font-size: 1.6rem;
-            }
-
-            .upload-area {
-                padding: 1.5rem;
-            }
-
-            .upload-button {
-                padding: 10px 20px;
-                font-size: 1rem;
-            }
-
-            .option-group {
-                flex-direction: column;
-                align-items: stretch; /* Stretch items to full width */
-                gap: 10px;
-            }
-
-            .option-group select,
-            .option-group input[type="range"] {
-                max-width: none; /* Remove max-width on mobile */
-            }
-
-            .action-button {
-                padding: 10px 20px;
-                font-size: 1rem;
-                width: 100%; /* Full width button on mobile */
-                box-sizing: border-box; /* Include padding in width */
-            }
-        }
-
-        @media (max-width: 480px) {
-            .tool-card h2 {
-                font-size: 1.4rem;
-            }
-            .footer {
-                padding: 1rem;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image PDF Merger & Splitter</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #ff758c, #ff7eb3);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      background: #fff;
+      color: #333;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      max-width: 500px;
+      width: 100%;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #ff4081;
+    }
+    input[type="file"] {
+      display: block;
+      margin: 0 auto 20px auto;
+    }
+    .preview {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .preview img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+    button {
+      background: #ff4081;
+      color: #fff;
+      padding: 12px;
+      width: 100%;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      background: #e91e63;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <header class="header">
-        <h1>Your Multi-Tool Website</h1>
-        <nav>
-            <a href="#">Home</a>
-            <a href="#">PDF Tools</a>
-            <a href="#" class="active">Image Tools</a>
-            <a href="#">Text Tools</a>
-        </nav>
-    </header>
+  <div class="container">
+    <h2>Image PDF Merger & Splitter</h2>
+    <input type="file" id="imageInput" accept="image/*">
+    <div class="preview" id="previewContainer"></div>
+    <button onclick="convertToPDF()">Convert to PDF</button>
+    <button onclick="splitPDF()">Split PDF (One Page per Image)</button>
+    <a id="downloadLink" style="display: none;" download="output.pdf">Download PDF</a>
+  </div>
 
-    <main class="container">
-        <section class="tool-card">
-            <h2><i class="fas fa-image"></i> Image Converter</h2>
-            <p>Upload an image, convert it to a different format, and compress it.</p>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const { jsPDF } = window.jspdf;
+    let uploadedImage = null;
 
-            <div class="upload-area">
-                <input type="file" id="imageUpload" accept="image/*" style="display: none;">
-                <label for="imageUpload" class="upload-button">
-                    <i class="fas fa-upload"></i> Upload Image
-                </label>
-                <span id="fileName" class="file-name">No file chosen</span>
-            </div>
+    document.getElementById('imageInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          uploadedImage = event.target.result;
+          const img = document.createElement('img');
+          img.src = uploadedImage;
+          document.getElementById('previewContainer').innerHTML = '';
+          document.getElementById('previewContainer').appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
 
-            <div class="preview-area" id="previewArea" style="display: none;">
-                <h3>Image Preview</h3>
-                <img id="imagePreview" src="" alt="Image Preview">
-            </div>
+    function convertToPDF() {
+      if (!uploadedImage) return alert('Please upload an image first.');
+      const pdf = new jsPDF();
+      const img = new Image();
+      img.onload = function () {
+        const imgProps = pdf.getImageProperties(uploadedImage);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        pdf.addImage(uploadedImage, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+        const blob = pdf.output('blob');
+        const url = URL.createObjectURL(blob);
+        const link = document.getElementById('downloadLink');
+        link.href = url;
+        link.style.display = 'block';
+        link.textContent = 'Download PDF';
+      };
+      img.src = uploadedImage;
+    }
 
-            <div class="conversion-options" id="conversionOptions" style="display: none;">
-                <h3>Conversion Options</h3>
-                <div class="option-group">
-                    <label for="outputFormat">Convert to:</label>
-                    <select id="outputFormat">
-                        <option value="jpeg">JPEG</option>
-                        <option value="png">PNG</option>
-                        <option value="webp">WebP</option>
-                    </select>
-                </div>
+    function splitPDF() {
+      if (!uploadedImage) return alert('Please upload an image first.');
+      const pdf = new jsPDF();
+      const img = new Image();
+      img.onload = function () {
+        const imgProps = pdf.getImageProperties(uploadedImage);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        pdf.addImage(uploadedImage, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+        // Create new page for demo
+        pdf.addPage();
+        pdf.addImage(uploadedImage, 'JPEG', 0, 0, pdfWidth, pdfHeight);
 
-                <div class="option-group" id="qualityOption" style="display: none;">
-                    <label for="qualityRange">Quality:</label>
-                    <input type="range" id="qualityRange" min="0.1" max="1.0" step="0.05" value="0.8">
-                    <span id="qualityValue">80%</span>
-                </div>
-
-                <button id="convertBtn" class="action-button"><i class="fas fa-magic"></i> Convert & Download</button>
-            </div>
-
-            <div id="downloadArea" style="display: none;">
-                <p>Your converted image is ready!</p>
-                <a id="downloadLink" download="" class="action-button download-link">
-                    <i class="fas fa-download"></i> Download Converted Image
-                </a>
-            </div>
-
-            <div class="message-area" id="messageArea"></div>
-        </section>
-    </main>
-
-    <footer class="footer">
-        <p>&copy; 2025 Your Multi-Tool Website. All rights reserved.</p>
-    </footer>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const imageUpload = document.getElementById('imageUpload');
-            const fileNameSpan = document.getElementById('fileName');
-            const previewArea = document.getElementById('previewArea');
-            const imagePreview = document.getElementById('imagePreview');
-            const conversionOptions = document.getElementById('conversionOptions');
-            const outputFormatSelect = document.getElementById('outputFormat');
-            const qualityOptionDiv = document.getElementById('qualityOption');
-            const qualityRange = document.getElementById('qualityRange');
-            const qualityValueSpan = document.getElementById('qualityValue');
-            const convertBtn = document.getElementById('convertBtn');
-            const downloadArea = document.getElementById('downloadArea');
-            const downloadLink = document.getElementById('downloadLink');
-            const messageArea = document.getElementById('messageArea');
-
-            let uploadedFile = null;
-
-            // --- Helper Functions ---
-            function showMessage(message, type = 'info') {
-                messageArea.textContent = message;
-                messageArea.className = `message-area ${type}`;
-                messageArea.style.display = 'block';
-            }
-
-            function hideMessage() {
-                messageArea.style.display = 'none';
-            }
-
-            function showElement(element) {
-                element.style.display = 'block';
-            }
-
-            function hideElement(element) {
-                element.style.display = 'none';
-            }
-
-            // --- Event Listeners ---
-
-            imageUpload.addEventListener('change', (event) => {
-                uploadedFile = event.target.files[0];
-                hideMessage();
-                hideElement(downloadArea);
-
-                if (uploadedFile) {
-                    fileNameSpan.textContent = uploadedFile.name;
-                    const reader = new FileReader();
-
-                    reader.onload = (e) => {
-                        imagePreview.src = e.target.result;
-                        showElement(previewArea);
-                        showElement(conversionOptions);
-                    };
-
-                    reader.onerror = () => {
-                        showMessage('Error reading file.', 'error');
-                        hideElement(previewArea);
-                        hideElement(conversionOptions);
-                        fileNameSpan.textContent = 'No file chosen';
-                    };
-
-                    reader.readAsDataURL(uploadedFile);
-                } else {
-                    fileNameSpan.textContent = 'No file chosen';
-                    hideElement(previewArea);
-                    hideElement(conversionOptions);
-                }
-            });
-
-            outputFormatSelect.addEventListener('change', () => {
-                // Show quality option only for JPEG
-                if (outputFormatSelect.value === 'jpeg') {
-                    showElement(qualityOptionDiv);
-                } else {
-                    hideElement(qualityOptionDiv);
-                }
-            });
-
-            qualityRange.addEventListener('input', () => {
-                qualityValueSpan.textContent = `${Math.round(qualityRange.value * 100)}%`;
-            });
-
-            convertBtn.addEventListener('click', async () => {
-                if (!uploadedFile) {
-                    showMessage('Please upload an image first.', 'error');
-                    return;
-                }
-
-                showMessage('Converting image...', 'info');
-                hideElement(downloadArea); // Hide previous download link
-
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    const img = new Image();
-                    img.onload = async () => {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-
-                        // Set canvas dimensions to image dimensions
-                        canvas.width = img.naturalWidth;
-                        canvas.height = img.naturalHeight;
-
-                        // Draw the image onto the canvas
-                        ctx.drawImage(img, 0, 0);
-
-                        const outputFormat = outputFormatSelect.value;
-                        const quality = parseFloat(qualityRange.value);
-                        let mimeType;
-
-                        switch (outputFormat) {
-                            case 'jpeg':
-                                mimeType = 'image/jpeg';
-                                break;
-                            case 'png':
-                                mimeType = 'image/png';
-                                break;
-                            case 'webp':
-                                mimeType = 'image/webp';
-                                break;
-                            default:
-                                mimeType = 'image/jpeg'; // Fallback
-                        }
-
-                        try {
-                            // Convert canvas content to data URL
-                            const dataUrl = canvas.toDataURL(mimeType, quality);
-
-                            // Create a blob from the data URL for proper download
-                            const blob = await (await fetch(dataUrl)).blob();
-
-                            // Create a download link
-                            const originalFileName = uploadedFile.name.split('.').slice(0, -1).join('.');
-                            downloadLink.href = URL.createObjectURL(blob);
-                            downloadLink.download = `${originalFileName}.${outputFormat}`; // Set download filename
-
-                            showMessage('Conversion successful!', 'success');
-                            showElement(downloadArea);
-                        } catch (error) {
-                            console.error('Error during conversion:', error);
-                            showMessage('Error converting image. Please try again.', 'error');
-                        }
-                    };
-                    img.onerror = () => {
-                        showMessage('Error loading image for conversion.', 'error');
-                    };
-                    img.src = e.target.result;
-                };
-                reader.onerror = () => {
-                    showMessage('Error reading image for conversion.', 'error');
-                };
-                reader.readAsDataURL(uploadedFile);
-            });
-
-            // Initial state: hide options and download area
-            hideElement(previewArea);
-            hideElement(conversionOptions);
-            hideElement(downloadArea);
-            hideMessage();
-            hideElement(qualityOptionDiv); // Hide quality initially
-        });
-    </script>
+        const blob = pdf.output('blob');
+        const url = URL.createObjectURL(blob);
+        const link = document.getElementById('downloadLink');
+        link.href = url;
+        link.style.display = 'block';
+        link.textContent = 'Download Split PDF';
+      };
+      img.src = uploadedImage;
+    }
+  </script>
 </body>
 </html>
