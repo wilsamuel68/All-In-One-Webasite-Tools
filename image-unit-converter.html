@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image Unit Converter</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    .converter-container {
+      background: #ffffff20;
+      backdrop-filter: blur(10px);
+      padding: 20px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+    input[type="file"] {
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      background: #ffffff10;
+      border: 2px dashed #fff;
+      color: #fff;
+      cursor: pointer;
+    }
+    select, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 8px;
+      background-color: #ffffff33;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #ffffff55;
+    }
+    img {
+      width: 100%;
+      margin-top: 15px;
+      border-radius: 8px;
+    }
+    @media screen and (max-width: 600px) {
+      .converter-container {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Image Unit Converter</h1>
+  <p>Convert various units of image measurement & format</p>
+  <div class="converter-container">
+    <input type="file" id="imageInput" accept="image/*" />
+    <select id="format">
+      <option value="image/jpeg">Convert to JPEG</option>
+      <option value="image/png">Convert to PNG</option>
+      <option value="image/webp">Convert to WEBP</option>
+    </select>
+    <button onclick="convertImage()">Convert Image</button>
+    <div id="previewSection" style="display:none">
+      <h3>Preview:</h3>
+      <img id="preview" src="" alt="Preview" />
+      <a id="downloadBtn" href="#" download="converted-image" style="display:block;margin-top:10px;text-align:center;background:#fff;color:#000;padding:10px;border-radius:8px;text-decoration:none;font-weight:bold;">Download Image</a>
+    </div>
+  </div>
+  <script>
+    let originalImage = null;
+
+    document.getElementById("imageInput").addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          originalImage = new Image();
+          originalImage.onload = function () {
+            document.getElementById("preview").src = event.target.result;
+            document.getElementById("previewSection").style.display = "block";
+          };
+          originalImage.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function convertImage() {
+      if (!originalImage) return alert("Please upload an image first.");
+      const format = document.getElementById("format").value;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = originalImage.width;
+      canvas.height = originalImage.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(originalImage, 0, 0);
+
+      const convertedUrl = canvas.toDataURL(format);
+      document.getElementById("preview").src = convertedUrl;
+      document.getElementById("downloadBtn").href = convertedUrl;
+      document.getElementById("downloadBtn").download = `converted-image.${format.split('/')[1]}`;
+    }
+  </script>
+</body>
+</html>
