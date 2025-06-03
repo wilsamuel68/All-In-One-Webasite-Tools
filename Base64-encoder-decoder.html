@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Image URL Encoder/Decoder</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+      color: #333;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.15);
+      margin-top: 40px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input[type="file"], textarea, input[type="text"] {
+      width: 100%;
+      margin: 10px 0;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    button {
+      padding: 12px 20px;
+      background: #6a11cb;
+      background: linear-gradient(to right, #2575fc, #6a11cb);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin: 10px 5px;
+    }
+
+    button:hover {
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+    }
+
+    img {
+      max-width: 100%;
+      margin-top: 15px;
+      border-radius: 10px;
+      display: block;
+    }
+
+    @media(max-width: 600px) {
+      .container {
+        margin: 20px;
+        padding: 15px;
+      }
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    textarea {
+      height: 120px;
+      resize: vertical;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Image URL Encoder / Decoder</h2>
+
+    <!-- Encode Section -->
+    <label for="imageInput">Upload Image:</label>
+    <input type="file" id="imageInput" accept="image/*">
+
+    <div class="buttons">
+      <button onclick="encodeImage()">Encode to URL</button>
+      <button onclick="downloadImage()">Download Image</button>
+    </div>
+
+    <label for="dataUrl">Encoded Data URL:</label>
+    <textarea id="dataUrl" placeholder="Base64 Data URL will appear here..."></textarea>
+
+    <img id="preview" src="" alt="Image Preview" style="display:none;" />
+
+    <!-- Decode Section -->
+    <label for="decodeInput">Paste Data URL:</label>
+    <textarea id="decodeInput" placeholder="Paste Base64 Data URL to decode..."></textarea>
+    <button onclick="decodeImage()">Decode</button>
+  </div>
+
+  <script>
+    const imageInput = document.getElementById('imageInput');
+    const dataUrl = document.getElementById('dataUrl');
+    const preview = document.getElementById('preview');
+    const decodeInput = document.getElementById('decodeInput');
+
+    function encodeImage() {
+      const file = imageInput.files[0];
+      if (!file) {
+        alert("Please upload an image first.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        dataUrl.value = e.target.result;
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+      }
+      reader.readAsDataURL(file);
+    }
+
+    function decodeImage() {
+      const url = decodeInput.value.trim();
+      if (!url.startsWith("data:image")) {
+        alert("Invalid Data URL");
+        return;
+      }
+      preview.src = url;
+      preview.style.display = 'block';
+    }
+
+    function downloadImage() {
+      if (!preview.src) {
+        alert("No image to download.");
+        return;
+      }
+      const a = document.createElement('a');
+      a.href = preview.src;
+      a.download = 'image.png';
+      a.click();
+    }
+  </script>
+</body>
+</html>
