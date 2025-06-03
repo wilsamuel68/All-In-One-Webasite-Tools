@@ -1,153 +1,171 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Age Calculator & Image Converter</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f8ff;
-      margin: 0;
-      padding: 0;
-      color: #333;
-    }
-    .container {
-      max-width: 500px;
-      margin: 30px auto;
-      background: #ffffff;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
-    }
-    h2 {
-      text-align: center;
-      color: #007BFF;
-    }
-    label {
-      font-weight: bold;
-      display: block;
-      margin: 10px 0 5px;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    .preview-img {
-      max-width: 100%;
-      margin-bottom: 15px;
-      display: none;
-    }
-    button {
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    .result {
-      text-align: center;
-      font-size: 1.2em;
-      margin-bottom: 20px;
-    }
-    @media (max-width: 600px) {
-      .container {
-        margin: 15px;
-        padding: 15px;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Age Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .calculator {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="date"] {
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            background-color: #e8f4fc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .result-item {
+            margin-bottom: 10px;
+        }
+        .result-value {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .about {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .about h2 {
+            color: #2c3e50;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Age Calculator</h2>
-    <label for="dob">Enter Your Date of Birth:</label>
-    <input type="date" id="dob">
-    <button onclick="calculateAge()">Calculate Age</button>
-    <div class="result" id="ageResult"></div>
+    <h1>Age Calculator</h1>
+    
+    <div class="calculator">
+        <div class="input-group">
+            <label for="birth-date">Birth Date:</label>
+            <input type="date" id="birth-date" required>
+        </div>
+        
+        <div class="input-group">
+            <label for="end-date">End Date (optional, default is today):</label>
+            <input type="date" id="end-date">
+        </div>
+        
+        <button onclick="calculateAge()">Calculate Age</button>
+        
+        <div class="result" id="result" style="display: none;">
+            <h2>Age Calculation Result</h2>
+            <div class="result-item">Age in years: <span class="result-value" id="years"></span></div>
+            <div class="result-item">Age in months: <span class="result-value" id="months"></span></div>
+            <div class="result-item">Age in weeks: <span class="result-value" id="weeks"></span></div>
+            <div class="result-item">Age in days: <span class="result-value" id="days"></span></div>
+            <div class="result-item">Age in hours: <span class="result-value" id="hours"></span></div>
+            <div class="result-item">Age in minutes: <span class="result-value" id="minutes"></span></div>
+            <div class="result-item">Age in seconds: <span class="result-value" id="seconds"></span></div>
+        </div>
+    </div>
+    
+    <div class="about">
+        <h2>About Age Calculation</h2>
+        <p>The age of a person can be counted differently in different cultures. This calculator is based on the most common age system. In this system, age increases on a person's birthday. For example, the age of a person who has lived for 3 years and 11 months is 3, and their age will increase to 4 on their next birthday one month later. Most western countries use this age system.</p>
+        
+        <p>In some cultures, age is expressed by counting years with or without including the current year. For example, a person who is twenty years old is the same age as another person who is in their twenty-first year of life. In one of the traditional Chinese age systems, people are born at age 1 and their age increases up at the Traditional Chinese New Year rather than their birthday. For example, if one baby is born just one day before the Traditional Chinese New Year, 2 days later, the baby will be 2 even though he/she is only 2 days old.</p>
+        
+        <p>In some situations, the months and day result of this age calculator may be confusing, especially when the starting date is the end of a month. For example, we count Feb. 20 to Mar. 20 to be one month. However, there are two ways to calculate the age from Feb. 28 to Mar. 31. If we consider Feb. 28 to Mar. 28 to be one month, then the result is one month and 3 days. If we consider both Feb. 28 and Mar. 31 as the end of the month, then the result is one month. Both calculation results are reasonable. Similar situations exist for dates like Apr. 30 to May 31, May 30 to June 30, etc. The confusion comes from the uneven number of days in different months. In our calculations, we use the former method.</p>
+    </div>
 
-    <hr>
-
-    <h2>Image Converter</h2>
-    <label for="imgInput">Upload an Image:</label>
-    <input type="file" id="imgInput" accept="image/*">
-
-    <label for="format">Convert to Format:</label>
-    <select id="format">
-      <option value="image/jpeg">JPG</option>
-      <option value="image/png">PNG</option>
-      <option value="image/webp">WebP</option>
-    </select>
-
-    <img id="preview" class="preview-img" />
-
-    <button onclick="convertImage()">Convert & Download</button>
-  </div>
-
-  <script>
-    function calculateAge() {
-      const dob = document.getElementById("dob").value;
-      const result = document.getElementById("ageResult");
-      if (!dob) {
-        result.innerText = "Please select your date of birth.";
-        return;
-      }
-
-      const birthDate = new Date(dob);
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
-
-      result.innerText = `Your age is ${age} year(s).`;
-    }
-
-    const imgInput = document.getElementById('imgInput');
-    const preview = document.getElementById('preview');
-    let originalImage = null;
-
-    imgInput.addEventListener('change', function () {
-      const file = imgInput.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        preview.src = e.target.result;
-        preview.style.display = 'block';
-        originalImage = new Image();
-        originalImage.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
-
-    function convertImage() {
-      const format = document.getElementById("format").value;
-      if (!originalImage) {
-        alert("Please upload an image first.");
-        return;
-      }
-
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = originalImage.width;
-      canvas.height = originalImage.height;
-      ctx.drawImage(originalImage, 0, 0);
-
-      canvas.toBlob(blob => {
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `converted.${format.split('/')[1]}`;
-        link.click();
-      }, format, 0.7); // Compression set to 70%
-    }
-  </script>
+    <script>
+        function calculateAge() {
+            const birthDateInput = document.getElementById('birth-date');
+            const endDateInput = document.getElementById('end-date');
+            
+            if (!birthDateInput.value) {
+                alert('Please enter a birth date');
+                return;
+            }
+            
+            const birthDate = new Date(birthDateInput.value);
+            let endDate = endDateInput.value ? new Date(endDateInput.value) : new Date();
+            
+            if (endDate < birthDate) {
+                alert('End date must be after birth date');
+                return;
+            }
+            
+            // Calculate the difference in milliseconds
+            const diffMs = endDate - birthDate;
+            
+            // Convert to different units
+            const diffSeconds = Math.floor(diffMs / 1000);
+            const diffMinutes = Math.floor(diffSeconds / 60);
+            const diffHours = Math.floor(diffMinutes / 60);
+            const diffDays = Math.floor(diffHours / 24);
+            const diffWeeks = Math.floor(diffDays / 7);
+            
+            // Calculate years and months
+            let years = endDate.getFullYear() - birthDate.getFullYear();
+            let months = endDate.getMonth() - birthDate.getMonth();
+            
+            if (months < 0 || (months === 0 && endDate.getDate() < birthDate.getDate())) {
+                years--;
+                months += 12;
+            }
+            
+            // Adjust months if the end day is before the birth day
+            if (endDate.getDate() < birthDate.getDate()) {
+                months--;
+            }
+            
+            // Display the results
+            document.getElementById('years').textContent = years;
+            document.getElementById('months').textContent = years * 12 + months;
+            document.getElementById('weeks').textContent = diffWeeks;
+            document.getElementById('days').textContent = diffDays;
+            document.getElementById('hours').textContent = diffHours;
+            document.getElementById('minutes').textContent = diffMinutes;
+            document.getElementById('seconds').textContent = diffSeconds;
+            
+            document.getElementById('result').style.display = 'block';
+        }
+    </script>
 </body>
 </html>
