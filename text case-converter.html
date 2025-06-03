@@ -1,92 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Text Case & Image Converter</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image to Text Case Converter</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #00b4db, #0083b0);
+      color: #fff;
       margin: 0;
-      background: linear-gradient(135deg, #add8e6, #ffb6c1);
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
+      padding: 0;
     }
 
     .container {
-      background: #ffffffcc;
-      max-width: 800px;
-      width: 100%;
+      max-width: 600px;
+      margin: auto;
       padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      margin-bottom: 40px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
     }
 
-    h2 {
+    h1 {
       text-align: center;
-      color: #333;
-      margin-bottom: 20px;
+      color: #fff;
     }
 
-    textarea {
-      width: 100%;
-      height: 120px;
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      resize: vertical;
-      margin-bottom: 10px;
-    }
-
-    .button-group {
+    .file-input {
       display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 20px 0;
+    }
+
+    input[type="file"] {
+      padding: 10px;
+      background: #fff;
+      color: #333;
+      border-radius: 10px;
+    }
+
+    .preview {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .preview img {
+      max-width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 0 5px #000;
+    }
+
+    .btn-group {
+      display: flex;
+      justify-content: space-around;
       flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
       margin-bottom: 20px;
     }
 
     button {
-      background: linear-gradient(135deg, #89cff0, #ff69b4);
+      background: #ff7e5f;
       border: none;
       padding: 10px 20px;
-      border-radius: 25px;
       color: white;
       font-weight: bold;
+      margin: 10px;
+      border-radius: 10px;
       cursor: pointer;
       transition: background 0.3s;
     }
 
     button:hover {
-      opacity: 0.9;
+      background: #feb47b;
     }
 
-    input[type="file"] {
-      margin: 10px 0;
-    }
-
-    #preview {
-      max-width: 100%;
-      height: auto;
-      margin: 10px 0;
-      display: none;
-      border-radius: 10px;
-    }
-
-    select {
-      padding: 8px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      margin-bottom: 10px;
+    .download-section {
+      text-align: center;
     }
 
     @media (max-width: 600px) {
-      .button-group {
+      .btn-group {
         flex-direction: column;
         align-items: center;
       }
@@ -94,98 +88,77 @@
   </style>
 </head>
 <body>
-
   <div class="container">
-    <h2>Text Case Converter</h2>
-    <textarea id="textInput" placeholder="Enter text here..."></textarea>
-    <div class="button-group">
-      <button onclick="convertCase('upper')">UPPERCASE</button>
-      <button onclick="convertCase('lower')">lowercase</button>
-      <button onclick="convertCase('capitalize')">Capitalized Case</button>
-      <button onclick="copyText()">Copy</button>
-      <button onclick="clearText()">Clear</button>
+    <h1>Image to Text Case Converter</h1>
+    <div class="file-input">
+      <input type="file" accept="image/*" id="imageInput" />
     </div>
-  </div>
-
-  <div class="container">
-    <h2>Image Format Converter</h2>
-    <input type="file" id="imageInput" accept="image/*">
-    <select id="formatSelect">
-      <option value="image/jpeg">Convert to JPEG</option>
-      <option value="image/png">Convert to PNG</option>
-      <option value="image/webp">Convert to WebP</option>
-    </select>
-    <img id="preview" alt="Image Preview">
-    <div class="button-group">
-      <button onclick="convertImage()">Convert & Download</button>
+    <div class="preview" id="previewContainer"></div>
+    <div class="btn-group">
+      <button onclick="convertToLowercase()">Convert to Lowercase</button>
+      <button onclick="convertToUppercase()">Convert to Uppercase</button>
+    </div>
+    <div class="download-section">
+      <a id="downloadLink" style="display: none;" download="converted-text.txt">
+        <button>Download Text</button>
+      </a>
     </div>
   </div>
 
   <script>
-    // TEXT CASE FUNCTIONS
-    function convertCase(type) {
-      const textArea = document.getElementById('textInput');
-      let text = textArea.value;
-      if (type === 'upper') {
-        textArea.value = text.toUpperCase();
-      } else if (type === 'lower') {
-        textArea.value = text.toLowerCase();
-      } else if (type === 'capitalize') {
-        textArea.value = text
-          .toLowerCase()
-          .replace(/\b\w/g, char => char.toUpperCase());
-      }
-    }
+    let extractedText = '';
 
-    function copyText() {
-      const textArea = document.getElementById('textInput');
-      textArea.select();
-      document.execCommand('copy');
-      alert("Text copied!");
-    }
-
-    function clearText() {
-      document.getElementById('textInput').value = '';
-    }
-
-    // IMAGE CONVERTER FUNCTIONS
-    const imageInput = document.getElementById('imageInput');
-    const preview = document.getElementById('preview');
-    let originalImage = null;
-
-    imageInput.addEventListener('change', function() {
-      const file = this.files[0];
+    document.getElementById('imageInput').addEventListener('change', function (e) {
+      const file = e.target.files[0];
       if (file) {
         const reader = new FileReader();
-        reader.onload = function(e) {
-          preview.src = e.target.result;
-          preview.style.display = 'block';
-          originalImage = new Image();
-          originalImage.src = e.target.result;
-        }
+        reader.onload = function (event) {
+          const imgElement = document.createElement('img');
+          imgElement.src = event.target.result;
+          const previewContainer = document.getElementById('previewContainer');
+          previewContainer.innerHTML = '';
+          previewContainer.appendChild(imgElement);
+          extractTextFromImage(file);
+        };
         reader.readAsDataURL(file);
       }
     });
 
-    function convertImage() {
-      if (!originalImage) {
-        alert("Please select an image first.");
-        return;
-      }
-      const format = document.getElementById('formatSelect').value;
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = originalImage.width;
-      canvas.height = originalImage.height;
-      ctx.drawImage(originalImage, 0, 0);
+    function extractTextFromImage(imageFile) {
+      const worker = Tesseract.createWorker({
+        logger: m => console.log(m)
+      });
 
-      canvas.toBlob(function(blob) {
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'converted-image.' + format.split('/')[1];
-        link.click();
-      }, format, 0.9); // 90% quality
+      (async () => {
+        await worker.load();
+        await worker.loadLanguage('eng');
+        await worker.initialize('eng');
+        const {
+          data: { text }
+        } = await worker.recognize(imageFile);
+        extractedText = text;
+        await worker.terminate();
+      })();
+    }
+
+    function convertToLowercase() {
+      const lowercaseText = extractedText.toLowerCase();
+      downloadText(lowercaseText);
+    }
+
+    function convertToUppercase() {
+      const uppercaseText = extractedText.toUpperCase();
+      downloadText(uppercaseText);
+    }
+
+    function downloadText(content) {
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const downloadLink = document.getElementById('downloadLink');
+      downloadLink.href = url;
+      downloadLink.style.display = 'inline-block';
     }
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/dist/tesseract.min.js"></script>
 </body>
 </html>
